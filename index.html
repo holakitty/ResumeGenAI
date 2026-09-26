@@ -4,13 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ResumeCraft ATS - Smart Resume & Cover Letter Builder</title>
-    <meta name="description" content="Production-ready ATS resume & cover letter builder with live generation, Naukri/Indeed job connectors, 6 ATS templates, AI tailoring, and existing CV file parsing." />
+    <meta name="description" content="Production-ready ATS resume & cover letter builder with live generation, Naukri/Indeed job connectors, 6 ATS templates, AI tailoring, and client-side PDF/TXT CV parsing." />
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- PDF.js CDN for Client-Side PDF Text Extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      // Configure PDF.js worker source
+      window.addEventListener('DOMContentLoaded', () => {
+        if (window['pdfjsLib']) {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+      });
+    </script>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -91,7 +102,7 @@
           </h1>
 
           <p class="mt-5 text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Upload your existing CV or generate, customize, and audit high-scoring resumes with 6 ATS templates, portal job description matching, and real-time score auditing directly below.
+            Upload your existing CV with real client-side PDF/TXT parsing or generate, customize, and audit high-scoring resumes with 6 ATS templates below.
           </p>
 
           <!-- Quick Jump CTA -->
@@ -155,12 +166,12 @@
             <div class="space-y-2">
               <h3 class="text-xl font-extrabold text-white">Upload Your Preexisting CV</h3>
               <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-                Upload your existing resume (<strong class="text-slate-200">PDF, DOC, DOCX, TXT</strong>). Our AI parser extracts your information to prefill the CV generator fields and templates automatically.
+                Upload your existing resume (<strong class="text-slate-200">PDF or TXT</strong>). Our client-side parser extracts the text layers to prefill the CV generator fields instantly.
               </p>
             </div>
 
             <!-- Hidden File Input -->
-            <input type="file" id="cv-file-input" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="handleFileUpload(event)">
+            <input type="file" id="cv-file-input" accept=".pdf,.txt" class="hidden" onchange="handleFileUpload(event)">
 
             <div 
               onclick="document.getElementById('cv-file-input').click()"
@@ -171,14 +182,14 @@
               </div>
               <div>
                 <p id="upload-label-text" class="font-bold text-sm text-slate-200 group-hover:text-indigo-400 transition">Click to select or drop your CV file here</p>
-                <p class="text-[11px] text-slate-500 mt-1">Supports PDF, Word Documents, and Plain Text</p>
+                <p class="text-[11px] text-slate-500 mt-1">Supports PDF and Text (.txt) formats via client-side parser</p>
               </div>
             </div>
 
             <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
               <span class="flex items-center gap-1.5 text-emerald-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                <span>Secure client-side parsing</span>
+                <span>Secure browser-only parsing</span>
               </span>
               <button onclick="switchTab('generator')" class="font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
                 <span>Skip to Generator</span>
@@ -356,7 +367,7 @@
       </footer>
     </div>
 
-    <!-- Interactive Script -->
+    <!-- Interactive Script with PDF.js & FileReader Parser -->
     <script>
       function switchTab(tabId) {
         const uploadTab = document.getElementById('app-tab-upload');
@@ -377,26 +388,53 @@
         }
       }
 
-      function handleFileUpload(event) {
+      async function handleFileUpload(event) {
         const file = event.target.files?.[0];
         if (!file) return;
 
         const label = document.getElementById('upload-label-text');
-        label.innerText = `Parsing ${file.name} with AI parser...`;
+        label.innerText = `Parsing ${file.name}...`;
 
-        setTimeout(() => {
-          document.getElementById('gen-name').value = "Ranjana Guha";
-          document.getElementById('gen-title').value = "Statistician & Data Analytics Professional";
-          document.getElementById('gen-email').value = "ranjana.guha@example.com";
-          document.getElementById('gen-summary').value = "Accomplished statistician and data analytics professional specializing in official statistics, Index computation (CPI/WPI), survey research, and advanced predictive modeling.";
-          
+        try {
+          let extractedText = "";
+
+          if (file.type === "text/plain" || file.name.endsWith('.txt')) {
+            extractedText = await file.text();
+          } else if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdfDoc = await loadingTask.promise;
+            
+            let fullText = "";
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+              const page = await pdfDoc.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map(item => item.str).join(' ');
+              fullText += pageText + "\n";
+            }
+            extractedText = fullText;
+          } else {
+            // Fallback for other formats
+            extractedText = `File uploaded: ${file.name}`;
+          }
+
+          // Simple heuristic assignment to generator fields if text found
+          if (extractedText.trim().length > 0) {
+            document.getElementById('gen-summary').value = extractedText.slice(0, 400).trim() + "...";
+          }
+
           renderAppPreview();
-          label.innerText = `Successfully parsed ${file.name}! Prefilled generator.`;
+          label.innerText = `Successfully parsed ${file.name}!`;
 
           setTimeout(() => {
             switchTab('generator');
           }, 800);
-        }, 1200);
+
+        } catch (err) {
+          console.error("Parsing error:", err);
+          label.innerText = `Error parsing file. Switched to generator.`;
+          setTimeout(() => switchTab('generator'), 1000);
+        }
       }
 
       function renderAppPreview() {
