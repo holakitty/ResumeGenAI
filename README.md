@@ -106,8 +106,8 @@ resumecraft-ats/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/resumecraft-ats.git
-cd resumecraft-ats
+git clone https://github.com/holakitty/ResumeGenAI.git
+cd ResumeGenAI
 ```
 
 ### 2. Install Dependencies
@@ -150,15 +150,18 @@ This repository includes a standalone, zero-dependency landing page in `/docs/in
 
 1. Push your repository to GitHub:
    ```bash
+   git init
    git add .
-   git commit -m "feat: complete ResumeCraft ATS app and landing page"
-   git push origin main
+   git commit -m "feat: complete ResumeGenAI ATS app and landing page"
+   git branch -M main
+   git remote add origin https://github.com/holakitty/ResumeGenAI.git
+   git push -u origin main
    ```
-2. In your GitHub repository, go to **Settings > Pages**.
+2. In your GitHub repository, go to **Settings > Pages** (`https://github.com/holakitty/ResumeGenAI/settings/pages`).
 3. Under **Build and deployment > Branch**:
    - Select branch: `main`
    - Select folder: `/docs`
-4. Click **Save**. Your landing page is live at `https://<your-username>.github.io/<repo-name>/`!
+4. Click **Save**. Your landing page is live at [https://holakitty.github.io/ResumeGenAI/](https://holakitty.github.io/ResumeGenAI/)!
 
 ---
 

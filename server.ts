@@ -35,6 +35,100 @@ const ai = new GoogleGenAI({
   },
 });
 
+// Helper: Unified multi-provider AI model caller (Gemini, OpenRouter, Groq)
+async function callAIModel({
+  customKey,
+  provider = 'gemini',
+  model,
+  prompt,
+  systemInstruction,
+  responseJson = false,
+}: {
+  customKey?: string;
+  provider?: string;
+  model?: string;
+  prompt: string;
+  systemInstruction?: string;
+  responseJson?: boolean;
+}): Promise<string> {
+  const chosenProvider = provider.toLowerCase();
+
+  if (chosenProvider === 'openrouter') {
+    const key = customKey || process.env.OPENROUTER_API_KEY;
+    if (!key) throw new Error('OpenRouter API key is missing. Please provide it in the API settings or .env');
+    const targetModel = model || 'google/gemini-2.0-flash-001';
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+        'HTTP-Referer': 'https://resumecraft-ats.dev',
+        'X-Title': 'ResumeCraft ATS',
+      },
+      body: JSON.stringify({
+        model: targetModel,
+        messages: [
+          ...(systemInstruction ? [{ role: 'system', content: systemInstruction }] : []),
+          { role: 'user', content: prompt }
+        ],
+        ...(responseJson ? { response_format: { type: 'json_object' } } : {})
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`OpenRouter error: ${err}`);
+    }
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
+  if (chosenProvider === 'groq') {
+    const key = customKey || process.env.GROQ_API_KEY;
+    if (!key) throw new Error('Groq API key is missing. Please provide it in the API settings or .env');
+    const targetModel = model || 'llama-3.3-70b-versatile';
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: targetModel,
+        messages: [
+          ...(systemInstruction ? [{ role: 'system', content: systemInstruction }] : []),
+          { role: 'user', content: prompt }
+        ],
+        ...(responseJson ? { response_format: { type: 'json_object' } } : {})
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`Groq error: ${err}`);
+    }
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
+  // Default: Gemini API
+  const geminiKey = customKey || process.env.GEMINI_API_KEY || '';
+  const client = geminiKey ? new GoogleGenAI({
+    apiKey: geminiKey,
+    httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+  }) : ai;
+
+  const targetModel = model || 'gemini-3.8-flash';
+  const response = await client.models.generateContent({
+    model: targetModel,
+    contents: prompt,
+    config: {
+      ...(systemInstruction ? { systemInstruction } : {}),
+      ...(responseJson ? { responseMimeType: 'application/json' } : {}),
+    }
+  });
+
+  return response.text || '';
+}
+
 // Helper: Extract plain text from PDF, DOCX, DOC, or TXT buffer
 async function extractFileText(buffer: Buffer, fileName: string = '', mimeType: string = ''): Promise<string> {
   const lowerName = fileName.toLowerCase();
@@ -865,6 +959,81 @@ Return JSON:
     console.error('Error in /api/enhance-bullet:', error);
     return res.status(500).json({ error: error.message || 'Failed to enhance bullet' });
   }
+});
+
+// Endpoint: AI Co-Pilot & Webpage Feature Generator Chatbot
+app.post('/api/ai-chat', async (req: Request, res: Response) => {
+  try {
+    const { message, history, currentResume, activeJob, provider, model } = req.body;
+    const customKey = (req.headers['x-custom-api-key'] as string) || '';
+    const targetProvider = (req.headers['x-provider'] as string) || provider || 'gemini';
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const systemInstruction = `You are ResumeCraft ATS Intelligent AI Co-Pilot and Feature Generator.
+You assist the candidate with:
+1. ATS Optimization & Keyword Analysis (for Naukri, Indeed, LinkedIn, Workday, Taleo).
+2. Resume Bullet Enhancements using the STAR framework with measurable quantitative metrics.
+3. Feature Generation: suggest code snippets, new UI features, and enhancements for this web application.
+4. Explaining API Tiering:
+   - Free Tier (Default): Powered by Google Gemini (gemini-3.8-flash) with zero setup required.
+   - Paid / Custom Key Tier: Used if the candidate desires higher quotas, reasoning models (gemini-3.1-pro-preview), or alternative providers like OpenRouter or Groq.
+
+Current Candidate Context:
+- Name: Ranjana Guha
+- Role: Statistical Analyst - Survey Analysis & Field Project Management
+- Institution: Indian Statistical Institute (ISI), Kolkata
+- Core Tools: Advanced Excel, R, DBF microdata databases, Sampling, Cross-Tabulations
+- Active Target Job: ${activeJob ? `${activeJob.jobTitle} at ${activeJob.company}` : 'Senior Data Analyst (Naukri/Indeed)'}
+
+Reply with clear, helpful, formatted guidance, practical STAR bullets, or feature suggestions.`;
+
+    const chatHistoryText = Array.isArray(history)
+      ? history.slice(-6).map((h: any) => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.text}`).join('\n')
+      : '';
+
+    const fullPrompt = `${chatHistoryText ? `Previous Conversation:\n${chatHistoryText}\n\n` : ''}User Message: ${message}`;
+
+    const reply = await callAIModel({
+      customKey,
+      provider: targetProvider,
+      model,
+      prompt: fullPrompt,
+      systemInstruction,
+    });
+
+    return res.json({ success: true, reply });
+  } catch (error: any) {
+    console.error('Error in /api/ai-chat:', error);
+    return res.status(500).json({ error: error.message || 'Failed to process AI chat message' });
+  }
+});
+
+// Endpoint: Serve Landing Page preview directly
+app.get('/landing', (req: Request, res: Response) => {
+  const landingPath = path.resolve(__dirname, 'docs', 'index.html');
+  if (fs.existsSync(landingPath)) {
+    return res.sendFile(landingPath);
+  }
+  res.status(404).send('Landing page not found');
+});
+
+// Endpoint: Download docs/index.html for GitHub Pages upload
+app.get('/api/download-landing', (req: Request, res: Response) => {
+  const landingPath = path.resolve(__dirname, 'docs', 'index.html');
+  res.setHeader('Content-Disposition', 'attachment; filename="index.html"');
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(landingPath);
+});
+
+// Endpoint: Download README.md for GitHub repository upload
+app.get('/api/download-readme', (req: Request, res: Response) => {
+  const readmePath = path.resolve(__dirname, 'README.md');
+  res.setHeader('Content-Disposition', 'attachment; filename="README.md"');
+  res.setHeader('Content-Type', 'text/markdown');
+  res.sendFile(readmePath);
 });
 
 // Setup Vite middleware in dev or static files in production

@@ -8,6 +8,8 @@ import { CoverLetterStudio } from './components/CoverLetterStudio';
 import { ImportFeedModal } from './components/ImportFeedModal';
 import { JobConnectorModal } from './components/JobConnectorModal';
 import { TemplateGalleryModal } from './components/TemplateGalleryModal';
+import { GitHubPublishModal } from './components/GitHubPublishModal';
+import { AIChatbotDrawer } from './components/AIChatbotDrawer';
 import {
   FileText,
   Linkedin,
@@ -29,6 +31,7 @@ import {
   Zap,
   Palette,
   Check,
+  Github,
 } from 'lucide-react';
 
 export default function App() {
@@ -132,6 +135,7 @@ export default function App() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isTemplateGalleryOpen, setIsTemplateGalleryOpen] = useState(false);
+  const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
 
   // Handle direct LinkedIn Parse
   const handleFetchLinkedin = async (customUrl?: string) => {
@@ -436,6 +440,14 @@ export default function App() {
 
           {/* Global Actions */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsGitHubModalOpen(true)}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition"
+              title="Publish Landing Page to holakitty.github.io/ResumeGenAI"
+            >
+              <Github className="w-3.5 h-3.5 text-indigo-400" />
+              <span>GitHub Pages</span>
+            </button>
             <button
               onClick={() => setIsTemplateGalleryOpen(true)}
               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition"
@@ -899,6 +911,20 @@ export default function App() {
         onSelectTemplate={handleSelectTemplate}
         accentColor={accentColor}
         onSelectAccentColor={setAccentColor}
+      />
+
+      <GitHubPublishModal
+        isOpen={isGitHubModalOpen}
+        onClose={() => setIsGitHubModalOpen(false)}
+      />
+
+      {/* Floating AI Chatbot & Feature Generator Co-Pilot */}
+      <AIChatbotDrawer
+        currentResume={resumeData}
+        activeJob={activeJob}
+        onApplyTailoring={(tailored) =>
+          setResumeData((prev) => ({ ...prev, summary: tailored }))
+        }
       />
     </div>
   );
