@@ -41,11 +41,7 @@
   </head>
   <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white min-h-screen">
     
-    <!-- React SPA Mount Point (For Vite Dev & Live Hosted Server) -->
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-
-    <!-- Static GitHub Pages Landing & README Showcase (Displays on GitHub Pages if Vite dev server is not running) -->
+    <!-- Static GitHub Pages Landing & README Showcase -->
     <div id="static-landing" class="relative">
       <div class="fixed inset-0 pointer-events-none glow-bg z-0"></div>
 
@@ -53,15 +49,15 @@
       <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-linear-to-tr from-indigo-600 via-blue-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-extrabold text-white text-base">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-extrabold text-white text-base">
               RC
             </div>
             <div>
-              <span class="font-extrabold text-lg tracking-tight bg-linear-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
+              <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
                 ResumeCraft <span class="text-indigo-400">ATS</span>
               </span>
               <span class="ml-2 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Live Edition
+                GitHub Pages Edition
               </span>
             </div>
           </div>
@@ -70,23 +66,21 @@
             <a href="#readme" class="hover:text-white transition">README &amp; Docs</a>
             <a href="#candidate" class="hover:text-white transition">Candidate Profile</a>
             <a href="#templates" class="hover:text-white transition">6 ATS Templates</a>
-            <a href="#features" class="hover:text-white transition">Features</a>
             <a href="https://github.com/holakitty/ResumeGenAI" target="_blank" rel="noopener noreferrer" class="hover:text-white transition flex items-center gap-1">
               <span>GitHub Repo</span>
               <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
             </a>
           </nav>
 
-          <!-- Launch Live Generator Button -->
+          <!-- Action Button -->
           <div class="flex items-center gap-3">
             <a
-              href="https://ais-pre-5oxtp4fxcbccd6xaxlhmd3-644571359914.asia-east1.run.app"
+              href="https://github.com/holakitty/ResumeGenAI"
               target="_blank"
               rel="noopener noreferrer"
-              class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-linear-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 shadow-lg shadow-indigo-500/30 transition transform hover:-translate-y-0.5 flex items-center gap-2"
+              class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 shadow-lg shadow-indigo-500/30 transition transform hover:-translate-y-0.5 flex items-center gap-2"
             >
-              <span>🚀 Launch Resume Generator</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              <span>⭐ Star on GitHub</span>
             </a>
           </div>
         </div>
@@ -103,7 +97,7 @@
 
           <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight sm:leading-tight">
             Craft Resumes That Pass <br class="hidden sm:inline" />
-            <span class="bg-linear-to-r from-indigo-400 via-sky-300 to-emerald-400 bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r from-indigo-400 via-sky-300 to-emerald-400 bg-clip-text text-transparent">
               Workday, Taleo &amp; Greenhouse
             </span>
           </h1>
@@ -115,23 +109,20 @@
           <!-- Primary CTA Buttons -->
           <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href="https://ais-pre-5oxtp4fxcbccd6xaxlhmd3-644571359914.asia-east1.run.app"
+              href="https://github.com/holakitty/ResumeGenAI"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-sm text-white bg-linear-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 shadow-xl shadow-indigo-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 shadow-xl shadow-indigo-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
-              <span>🚀 Open Live Resume Generator</span>
+              <span>📂 Explore GitHub Source</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </a>
 
             <a
-              href="https://github.com/holakitty/ResumeGenAI"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#readme"
               class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-sm text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 transition flex items-center justify-center gap-2"
             >
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-              <span>GitHub Repository</span>
+              <span>View System Docs</span>
             </a>
           </div>
 
@@ -238,7 +229,7 @@
       <!-- Candidate Spotlight -->
       <section id="candidate" class="py-16">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="p-6 rounded-2xl bg-linear-to-r from-slate-900 to-indigo-950/70 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-950/70 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div class="space-y-2">
               <div class="flex items-center gap-2">
                 <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px] tracking-wide uppercase">
@@ -253,12 +244,12 @@
             </div>
 
             <a
-              href="https://ais-pre-5oxtp4fxcbccd6xaxlhmd3-644571359914.asia-east1.run.app"
+              href="https://github.com/holakitty/ResumeGenAI"
               target="_blank"
               rel="noopener noreferrer"
               class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shrink-0 flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition"
             >
-              <span>View &amp; Edit Profile in App</span>
+              <span>View Repository Code</span>
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </a>
           </div>
@@ -336,7 +327,7 @@
               <p class="text-emerald-400">npm run dev</p>
               <p class="text-slate-500 pt-2"># GitHub Pages deployment</p>
               <p class="text-slate-400 text-[11px]">
-                In repository settings &gt; Pages &gt; Branch: <span class="text-white font-bold">main</span>, Folder: <span class="text-white font-bold">/ (root)</span> or <span class="text-white font-bold">/docs</span>.
+                In repository settings &gt; Pages &gt; Branch: <span class="text-white font-bold">main</span>, Folder: <span class="text-white font-bold">/ (root)</span>.
               </p>
             </div>
           </div>
@@ -348,8 +339,7 @@
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© 2026 ResumeCraft ATS. Released under MIT License for <a href="https://github.com/holakitty/ResumeGenAI" class="text-indigo-400 hover:underline">holakitty/ResumeGenAI</a>.</p>
           <div class="flex items-center gap-4">
-            <a href="https://ais-pre-5oxtp4fxcbccd6xaxlhmd3-644571359914.asia-east1.run.app" class="text-indigo-400 hover:underline font-bold">Launch App</a>
-            <a href="https://github.com/holakitty/ResumeGenAI" class="text-slate-400 hover:text-white">GitHub Repo</a>
+            <a href="https://github.com/holakitty/ResumeGenAI" class="text-indigo-400 hover:underline font-bold">GitHub Repo</a>
           </div>
         </div>
       </footer>
