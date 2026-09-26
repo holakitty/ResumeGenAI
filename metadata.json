@@ -1,0 +1,6 @@
+{
+  "name": "ResumeCraft ATS - Smart Resume & Cover Letter Builder",
+  "description": "ATS-ready resume and cover letter builder with LinkedIn and CV feed import, Naukri and Indeed job description connectors, 6 ATS templates, and AI tailoring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
