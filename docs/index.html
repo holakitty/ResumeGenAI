@@ -910,14 +910,30 @@
         document.getElementById('out-summary').innerText = summary;
 
         const canvas = document.getElementById('cv-canvas');
-        canvas.className = "p-6 rounded-xl bg-white text-slate-900 font-sans shadow-xl min-h-[380px] space-y-4 text-left";
+        const outTitle = document.getElementById('out-title');
         
-        if (template === 'harvard') canvas.style.fontFamily = '"EB Garamond", serif';
-        else if (template === 'executive') canvas.style.fontFamily = 'Inter, sans-serif';
-        else if (template === 'modern') canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
-        else if (template === 'burgundy') canvas.style.fontFamily = 'Merriweather, serif';
-        else if (template === 'nordic') canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
-        else canvas.style.fontFamily = 'Inter, sans-serif';
+        if (template === 'harvard') {
+          canvas.style.fontFamily = '"EB Garamond", serif';
+          if (outTitle) outTitle.style.color = '#991b1b';
+        } else if (template === 'executive') {
+          canvas.style.fontFamily = 'Inter, sans-serif';
+          if (outTitle) outTitle.style.color = '#4f46e5';
+        } else if (template === 'modern') {
+          canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
+          if (outTitle) outTitle.style.color = '#2563eb';
+        } else if (template === 'corporate') {
+          canvas.style.fontFamily = 'Inter, sans-serif';
+          if (outTitle) outTitle.style.color = '#1e3a8a';
+        } else if (template === 'burgundy') {
+          canvas.style.fontFamily = 'Merriweather, serif';
+          if (outTitle) outTitle.style.color = '#881337';
+        } else if (template === 'nordic') {
+          canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
+          if (outTitle) outTitle.style.color = '#059669';
+        } else {
+          canvas.style.fontFamily = 'Inter, sans-serif';
+          if (outTitle) outTitle.style.color = '#1e293b';
+        }
       }
 
       function applyTailor() {

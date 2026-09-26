@@ -540,7 +540,10 @@
                   <div class="text-center border-b pb-4 border-slate-200">
                     <h2 id="out-name" class="text-xl font-bold tracking-tight text-slate-900">Ranjana Guha</h2>
                     <p id="out-title" class="text-xs font-semibold text-red-800 mt-0.5 uppercase tracking-wide">Statistical Analyst - Survey Analysis &amp; Field Project Management</p>
-                    <p id="out-contact" class="text-[11px] text-slate-600 mt-1">ranjana.guha@gmail.com • +91 84202 69510 • Kolkata, West Bengal • linkedin.com/in/ranjana-guha-969a9a30b/</p>
+                    <p id="out-contact" class="text-[11px] text-slate-600 mt-1">
+                      ranjana.guha@gmail.com • +91 84202 69510 • Kolkata, West Bengal • linkedin.com/in/ranjana-guha-969a9a30b/ • 
+                      <a href="https://github.com/holakitty/RAG-pdfs" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline font-semibold">github.com/holakitty/RAG-pdfs</a>
+                    </p>
                   </div>
 
                   <div class="space-y-1">
@@ -601,6 +604,18 @@
                       <p><strong class="font-semibold text-slate-900">Survey Operations:</strong> Survey Data Analysis, Field Project Management, Enumerator Supervision, Sampling Design, Cross-Tabulation, Quality Control</p>
                       <p><strong class="font-semibold text-slate-900">Tools &amp; Databases:</strong> Advanced Excel (VBA, Macros, Pivot Tables), R (tidyverse, survey, data.table), DBF Databases (dBase), SQL</p>
                       <p><strong class="font-semibold text-slate-900">Statistical Methods:</strong> Descriptive &amp; Inferential Statistics, Hypothesis Testing, Sampling Weights, Microdata Validation, Variance Estimation</p>
+                    </div>
+                  </div>
+
+                  <!-- Verified Open Source Project -->
+                  <div class="space-y-1 pt-1">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-300 pb-0.5">Open Source Projects</h4>
+                    <div class="text-[10.5px] text-slate-700">
+                      <div class="flex justify-between items-baseline font-bold text-slate-900">
+                        <span>RAG-pdfs: Retrieval-Augmented Generation for PDF Documents</span>
+                        <a href="https://github.com/holakitty/RAG-pdfs" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline text-[10px]">github.com/holakitty/RAG-pdfs</a>
+                      </div>
+                      <p class="text-slate-600 mt-0.5">Engineered modular parsing, chunking, and semantic embedding pipeline for factual question-answering over complex multi-page PDF documents.</p>
                     </div>
                   </div>
                 </div>
@@ -916,14 +931,30 @@
         document.getElementById('out-summary').innerText = summary;
 
         const canvas = document.getElementById('cv-canvas');
-        canvas.className = "p-6 rounded-xl bg-white text-slate-900 font-sans shadow-xl min-h-[380px] space-y-4 text-left";
+        const outTitle = document.getElementById('out-title');
         
-        if (template === 'harvard') canvas.style.fontFamily = '"EB Garamond", serif';
-        else if (template === 'executive') canvas.style.fontFamily = 'Inter, sans-serif';
-        else if (template === 'modern') canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
-        else if (template === 'burgundy') canvas.style.fontFamily = 'Merriweather, serif';
-        else if (template === 'nordic') canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
-        else canvas.style.fontFamily = 'Inter, sans-serif';
+        if (template === 'harvard') {
+          canvas.style.fontFamily = '"EB Garamond", serif';
+          if (outTitle) outTitle.style.color = '#991b1b';
+        } else if (template === 'executive') {
+          canvas.style.fontFamily = 'Inter, sans-serif';
+          if (outTitle) outTitle.style.color = '#4f46e5';
+        } else if (template === 'modern') {
+          canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
+          if (outTitle) outTitle.style.color = '#2563eb';
+        } else if (template === 'corporate') {
+          canvas.style.fontFamily = 'Inter, sans-serif';
+          if (outTitle) outTitle.style.color = '#1e3a8a';
+        } else if (template === 'burgundy') {
+          canvas.style.fontFamily = 'Merriweather, serif';
+          if (outTitle) outTitle.style.color = '#881337';
+        } else if (template === 'nordic') {
+          canvas.style.fontFamily = '"Plus Jakarta Sans", sans-serif';
+          if (outTitle) outTitle.style.color = '#059669';
+        } else {
+          canvas.style.fontFamily = 'Inter, sans-serif';
+          if (outTitle) outTitle.style.color = '#1e293b';
+        }
       }
 
       function applyTailor() {

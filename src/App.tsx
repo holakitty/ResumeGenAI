@@ -291,17 +291,18 @@ export default function App() {
     const targetJob = jobToTailor || activeJob;
     setStatusMessage(`Tailoring resume for ${targetJob.company} (${targetJob.platform})...`);
 
-    const tailoredSummary = `Accomplished Statistical Analyst and Field Project Specialist with extensive experience at the Indian Statistical Institute (ISI), specializing in end-to-end survey data analysis, sampling design, and microdata processing. Expert in utilizing Advanced Excel, R programming, and DBF databases for large-scale quantitative evaluations, cross-tabulation, and quality assurance aligned with ${targetJob.company}'s requirements.`;
+    // Dynamically tailor summary while strictly preserving candidate's real work experiences
+    const candidateHeadline = resumeData.personalInfo.headline || 'Statistical Analyst';
+    const primaryExp = resumeData.experiences[0];
+    const expCompany = primaryExp?.company || '';
+    const expRole = primaryExp?.role || candidateHeadline;
+    const keyTools = resumeData.skills[0]?.items.slice(0, 3).join(', ') || 'quantitative methodologies';
 
-    const improvedBullets = [
-      `Directed multi-phase statistical survey operations and field project management across nationwide studies, implementing quality audit checkpoints that achieved 99.4% field data accuracy for ${targetJob.company} research standards.`,
-      'Processed, cleansed, and verified extensive survey microdata stored in DBF database files and Excel, developing validation routines to eliminate non-sampling errors.',
-      'Conducted quantitative survey data analysis and cross-tabulations using R and Advanced Excel, computing sampling weights, standard errors, and descriptive statistical metrics.',
-      'Automated repetitive data extraction and merging pipelines from DBF formats into R and Excel, accelerating project data delivery cycles by 60%.',
-      'Trained and mentored field enumerators and junior research staff on survey questionnaire protocols, ethical data collection, and field consistency screening.'
-    ];
+    const tailoredSummary = expCompany
+      ? `Accomplished ${expRole} with verified hands-on track record at ${expCompany}, specializing in project execution, analytical problem-solving, and cross-functional leadership. Expert in leveraging ${keyTools} to drive high-impact results, data integrity, and measurable operational excellence aligned with ${targetJob.company}'s requirements.`
+      : `Accomplished ${candidateHeadline} with extensive hands-on experience in project execution, empirical data analysis, and technical problem-solving. Proven track record aligning rigorous quantitative methodologies and quality assurance with ${targetJob.company}'s core requirements.`;
 
-    // Add target keywords to skills
+    // Add target keywords to skills without corrupting user experiences
     const newSkills = [...resumeData.skills];
     const missingToAdd = targetJob.extractedKeywords.slice(0, 3);
     if (newSkills.length > 0) {
@@ -319,12 +320,8 @@ export default function App() {
       ...prev,
       summary: tailoredSummary,
       skills: newSkills,
-      experiences: prev.experiences.map((exp, idx) => {
-        if (idx === 0) {
-          return { ...exp, bullets: improvedBullets };
-        }
-        return exp;
-      }),
+      // PRESERVE ALL REAL EXPERIENCES EXACTLY AS EXTRACTED
+      experiences: prev.experiences,
     }));
 
     // Update tailored cover letter
@@ -333,14 +330,14 @@ export default function App() {
       companyName: `${targetJob.company} (via ${targetJob.platform.toUpperCase()})`,
       subject: `Application for ${targetJob.jobTitle}`,
       salutation: `Dear Hiring Team and Analytics Leaders at ${targetJob.company},`,
-      openingParagraph: `I am writing with great enthusiasm to submit my application for the ${targetJob.jobTitle} position at ${targetJob.company}. With extensive hands-on experience at the Indian Statistical Institute (ISI) in end-to-end survey data analysis, field project management, and large-scale microdata processing, I am confident in my ability to deliver immediate, rigorous value to your research and analytics initiatives.`,
+      openingParagraph: `I am writing with great enthusiasm to submit my application for the ${targetJob.jobTitle} position at ${targetJob.company}. With extensive hands-on experience in empirical data analysis, project management, and quality assurance, I am confident in my ability to deliver immediate, rigorous value to your research and analytics initiatives.`,
     }));
 
     // Update ATS audit score
     setAuditResult({
       score: 97,
       matchGrade: 'Excellent',
-      summaryFeedback: `Outstanding statistical & survey analytics alignment for ${targetJob.company} (${targetJob.platform.toUpperCase()}). Strong keyword saturation across ${targetJob.extractedKeywords.slice(0, 5).join(', ')}.`,
+      summaryFeedback: `Outstanding alignment for ${targetJob.company} (${targetJob.platform.toUpperCase()}). Strong keyword saturation across ${targetJob.extractedKeywords.slice(0, 5).join(', ')}.`,
       matchedKeywords: targetJob.extractedKeywords,
       missingKeywords: [],
       scoreBreakdown: {
@@ -352,7 +349,7 @@ export default function App() {
       metricsCheck: {
         hasQuantifiableResults: true,
         quantifiableCount: 7,
-        feedback: 'Excellent quantifiable statistics: 9+ years experience, 140K survey respondents, 99.4% data fidelity, 60% acceleration.',
+        feedback: 'Excellent quantifiable statistics: measurable project experience, verified data fidelity, and accelerated turnaround.',
       },
       formattingCompliance: {
         singleColumnStandard: true,
@@ -866,12 +863,19 @@ export default function App() {
 
               {/* Right Column: Live Printable Sheet */}
               <div className="lg:col-span-7 flex flex-col items-center">
-                <div className="w-full resume-sheet bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden transition-all">
+                <div className="w-full bg-slate-900/5 rounded-2xl shadow-xl border border-slate-300 overflow-hidden transition-all">
                   <ResumePreview
                     data={resumeData}
                     templateId={selectedTemplate}
                     accentColor={accentColor}
                     fontSize={fontSize}
+                    onSelectTemplate={handleSelectTemplate}
+                    onChangeAccentColor={setAccentColor}
+                    onChangeFontSize={setFontSize}
+                    targetKeywords={auditResult.matchedKeywords}
+                    isPdfUnlocked={isPdfUnlocked}
+                    onExportPdf={handleExportPdf}
+                    onExportTxt={handleExportTxt}
                   />
                 </div>
               </div>

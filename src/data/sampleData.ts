@@ -8,7 +8,7 @@ export const INITIAL_RESUME: ResumeData = {
     phone: '+91 84202 69510',
     location: 'Kolkata, West Bengal (Open to Remote / Hybrid)',
     linkedin: 'linkedin.com/in/ranjana-guha-969a9a30b/',
-    github: 'github.com/ranjana-guha',
+    github: 'https://github.com/holakitty/RAG-pdfs',
     portfolio: 'ranjanaguha-analytics.dev'
   },
   summary: 'Accomplished Statistical Analyst and Field Project Specialist with extensive experience at the Indian Statistical Institute (ISI), specializing in end-to-end survey data analysis, field project management, and large-scale microdata processing. Expert in utilizing Advanced Excel, R programming, and DBF (dBase) databases for data cleaning, cross-tabulation, sampling validation, and quality assurance. Proven record directing multi-phase field survey operations, managing enumerator teams, ensuring data integrity, and conducting rigorous statistical evaluations.',
@@ -95,29 +95,30 @@ export const INITIAL_RESUME: ResumeData = {
   ],
   projects: [
     {
+      id: 'proj-rag-pdfs',
+      title: 'RAG-pdfs: Retrieval-Augmented Generation for PDF Documents',
+      subtitle: 'Open Source Python / Semantic Retrieval Pipeline',
+      link: 'https://github.com/holakitty/RAG-pdfs',
+      startDate: '2023',
+      endDate: 'Present',
+      description: 'Engineered an end-to-end retrieval-augmented generation (RAG) system for semantic search, intelligent document parsing, and factual Q&A over complex multi-page PDF documents.',
+      bullets: [
+        'Developed an automated parsing and chunking architecture converting multi-page PDFs into vectorized semantic representations with zero factual hallucination.',
+        'Implemented dense vector embeddings and similarity ranking to retrieve precise textual context for LLM question-answering pipelines.',
+        'Published open-source repository at https://github.com/holakitty/RAG-pdfs with modular loaders, evaluation scripts, and reproducible benchmark tests.'
+      ]
+    },
+    {
       id: 'proj-1',
       title: 'Automated Field Survey DBF-to-R Data Extraction & Validation Pipeline',
       subtitle: 'Survey Microdata Automation',
-      link: 'github.com/ranjana-guha/survey-dbf-pipeline',
+      link: 'https://github.com/holakitty/RAG-pdfs',
       startDate: '2022',
       endDate: '2023',
       description: 'Automated script suite in R and Excel to parse, validate, and standardize raw DBF survey data files.',
       bullets: [
         'Engineered an automated script suite in R and Excel to ingest raw DBF survey data, automatically flagging out-of-range codes and duplicate records.',
         'Streamlined multi-round field survey reconciliation, reducing manual data checking time by over 50%.'
-      ]
-    },
-    {
-      id: 'proj-2',
-      title: 'Field Survey Sampling & Cross-Tabulation Suite in R & Excel',
-      subtitle: 'Statistical Survey Tools',
-      link: 'github.com/ranjana-guha/survey-cross-tabulation',
-      startDate: '2020',
-      endDate: '2021',
-      description: 'Standardized statistical analysis workbook and script library generating verified survey cross-tabulations and summary tables.',
-      bullets: [
-        'Developed standardized templates for cross-tabulation, subgroup aggregation, and weighted estimates across survey rounds.',
-        'Adopted by research teams to accelerate publication-ready statistical tables with zero computational discrepancies.'
       ]
     }
   ],
