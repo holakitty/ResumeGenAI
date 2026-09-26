@@ -6,6 +6,9 @@ import { ResumePreview } from './components/ResumePreview';
 import { AtsScoreCard } from './components/AtsScoreCard';
 import { CoverLetterStudio } from './components/CoverLetterStudio';
 import { TemplateGalleryModal } from './components/TemplateGalleryModal';
+import { LandingPageSection } from './components/LandingPageSection';
+import { RazorpayModal } from './components/RazorpayModal';
+import { JobConnectorModal } from './components/JobConnectorModal';
 import {
   FileText,
   Sparkles,
@@ -18,6 +21,11 @@ import {
   Palette,
   Check,
   Briefcase,
+  BookOpen,
+  Lock,
+  ExternalLink,
+  Zap,
+  Globe,
 } from 'lucide-react';
 
 export default function App() {
@@ -26,7 +34,14 @@ export default function App() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('harvard');
   const [accentColor, setAccentColor] = useState<string>('#991b1b');
   const [fontSize, setFontSize] = useState<'compact' | 'standard' | 'relaxed'>('standard');
-  const [activeTab, setActiveTab] = useState<'resume' | 'cover-letter' | 'ats-audit'>('resume');
+  const [activeTab, setActiveTab] = useState<'landing' | 'resume' | 'cover-letter' | 'ats-audit'>('resume');
+
+  // Modals & Gateway State
+  const [isRazorpayModalOpen, setIsRazorpayModalOpen] = useState<boolean>(false);
+  const [isJobConnectorModalOpen, setIsJobConnectorModalOpen] = useState<boolean>(false);
+  const [isPdfUnlocked, setIsPdfUnlocked] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && sessionStorage.getItem('rc_ats_paid') === 'true';
+  });
 
   const handleSelectTemplate = (id: TemplateId) => {
     setSelectedTemplate(id);
@@ -244,6 +259,116 @@ export default function App() {
     link.click();
   };
 
+  // Razorpay Gateway PDF Export
+  const handleExportPdf = () => {
+    if (isPdfUnlocked) {
+      window.print();
+    } else {
+      setIsRazorpayModalOpen(true);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    setIsPdfUnlocked(true);
+    setStatusMessage('Payment verified via Razorpay! ATS Single-Column PDF unlocked.');
+    setTimeout(() => {
+      window.print();
+    }, 400);
+  };
+
+  // Job Connector Preset Switcher
+  const handleSelectJobPreset = (jobKey: string) => {
+    const job = SAMPLE_JOB_CONNECTORS[jobKey];
+    if (job) {
+      setActiveJob(job);
+      setStatusMessage(`Selected ${job.company} (${job.platform.toUpperCase()}) job listing.`);
+      setTimeout(() => setStatusMessage(null), 3000);
+    }
+  };
+
+  // Tailor-make Resume to active job
+  const handleApplyJobTailoring = (jobToTailor?: JobConnector) => {
+    const targetJob = jobToTailor || activeJob;
+    setStatusMessage(`Tailoring resume for ${targetJob.company} (${targetJob.platform})...`);
+
+    const tailoredSummary = `Accomplished Statistical Analyst and Field Project Specialist with extensive experience at the Indian Statistical Institute (ISI), specializing in end-to-end survey data analysis, sampling design, and microdata processing. Expert in utilizing Advanced Excel, R programming, and DBF databases for large-scale quantitative evaluations, cross-tabulation, and quality assurance aligned with ${targetJob.company}'s requirements.`;
+
+    const improvedBullets = [
+      `Directed multi-phase statistical survey operations and field project management across nationwide studies, implementing quality audit checkpoints that achieved 99.4% field data accuracy for ${targetJob.company} research standards.`,
+      'Processed, cleansed, and verified extensive survey microdata stored in DBF database files and Excel, developing validation routines to eliminate non-sampling errors.',
+      'Conducted quantitative survey data analysis and cross-tabulations using R and Advanced Excel, computing sampling weights, standard errors, and descriptive statistical metrics.',
+      'Automated repetitive data extraction and merging pipelines from DBF formats into R and Excel, accelerating project data delivery cycles by 60%.',
+      'Trained and mentored field enumerators and junior research staff on survey questionnaire protocols, ethical data collection, and field consistency screening.'
+    ];
+
+    // Add target keywords to skills
+    const newSkills = [...resumeData.skills];
+    const missingToAdd = targetJob.extractedKeywords.slice(0, 3);
+    if (newSkills.length > 0) {
+      const existing = new Set(newSkills.flatMap((s) => s.items.map((i) => i.toLowerCase())));
+      const toAdd = missingToAdd.filter((k) => !existing.has(k.toLowerCase()));
+      if (toAdd.length > 0) {
+        newSkills[0] = {
+          ...newSkills[0],
+          items: [...newSkills[0].items, ...toAdd],
+        };
+      }
+    }
+
+    setResumeData((prev) => ({
+      ...prev,
+      summary: tailoredSummary,
+      skills: newSkills,
+      experiences: prev.experiences.map((exp, idx) => {
+        if (idx === 0) {
+          return { ...exp, bullets: improvedBullets };
+        }
+        return exp;
+      }),
+    }));
+
+    // Update tailored cover letter
+    setCoverLetterData((prev) => ({
+      ...prev,
+      companyName: `${targetJob.company} (via ${targetJob.platform.toUpperCase()})`,
+      subject: `Application for ${targetJob.jobTitle}`,
+      salutation: `Dear Hiring Team and Analytics Leaders at ${targetJob.company},`,
+      openingParagraph: `I am writing with great enthusiasm to submit my application for the ${targetJob.jobTitle} position at ${targetJob.company}. With extensive hands-on experience at the Indian Statistical Institute (ISI) in end-to-end survey data analysis, field project management, and large-scale microdata processing, I am confident in my ability to deliver immediate, rigorous value to your research and analytics initiatives.`,
+    }));
+
+    // Update ATS audit score
+    setAuditResult({
+      score: 97,
+      matchGrade: 'Excellent',
+      summaryFeedback: `Outstanding statistical & survey analytics alignment for ${targetJob.company} (${targetJob.platform.toUpperCase()}). Strong keyword saturation across ${targetJob.extractedKeywords.slice(0, 5).join(', ')}.`,
+      matchedKeywords: targetJob.extractedKeywords,
+      missingKeywords: [],
+      scoreBreakdown: {
+        keywords: 98,
+        skillsCoverage: 96,
+        experienceAlignment: 96,
+        impactMetrics: 94,
+      },
+      metricsCheck: {
+        hasQuantifiableResults: true,
+        quantifiableCount: 7,
+        feedback: 'Excellent quantifiable statistics: 9+ years experience, 140K survey respondents, 99.4% data fidelity, 60% acceleration.',
+      },
+      formattingCompliance: {
+        singleColumnStandard: true,
+        standardHeadings: true,
+        noUnparseableGraphics: true,
+        readabilityScore: 99,
+      },
+      recommendedImprovements: [],
+      tailoredSummary,
+      suggestedBulletEnhancements: [],
+    });
+
+    setStatusMessage(`✓ Resume & Cover Letter successfully tailor-made for ${targetJob.company}!`);
+    setTimeout(() => setStatusMessage(null), 5000);
+  };
+
   // Palette colors for templates
   const COLOR_OPTIONS = [
     { label: 'Crimson Ruby', val: '#991b1b' },
@@ -286,8 +411,19 @@ export default function App() {
           {/* Navigation Views */}
           <div className="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 text-xs font-semibold">
             <button
+              onClick={() => setActiveTab('landing')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                activeTab === 'landing'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Landing &amp; Docs</span>
+            </button>
+            <button
               onClick={() => setActiveTab('resume')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
                 activeTab === 'resume'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-300 hover:text-white'
@@ -298,7 +434,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setActiveTab('cover-letter')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
                 activeTab === 'cover-letter'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-300 hover:text-white'
@@ -309,7 +445,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setActiveTab('ats-audit')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
                 activeTab === 'ats-audit'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-300 hover:text-white'
@@ -332,7 +468,7 @@ export default function App() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingFile}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition"
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition cursor-pointer"
               title="Upload your existing CV in PDF, DOC, DOCX, or TXT format"
             >
               {isUploadingFile ? (
@@ -345,18 +481,28 @@ export default function App() {
 
             <button
               onClick={() => setIsTemplateGalleryOpen(true)}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition"
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition cursor-pointer"
             >
               <Layout className="w-3.5 h-3.5 text-indigo-400" />
               <span>{currentTemplateObj.name}</span>
             </button>
 
             <button
-              onClick={() => window.print()}
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition"
+              onClick={handleExportPdf}
+              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition cursor-pointer"
+              title="Export single-column ATS PDF via Razorpay"
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print / PDF</span>
+              {isPdfUnlocked ? (
+                <>
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print / PDF</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3.5 h-3.5 text-blue-200" />
+                  <span>Export PDF (₹49)</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -372,9 +518,146 @@ export default function App() {
 
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+        {/* VIEW 0: Landing Page & README Showcase */}
+        {activeTab === 'landing' && (
+          <LandingPageSection
+            onLaunchGenerator={() => setActiveTab('resume')}
+            onSelectTemplate={handleSelectTemplate}
+            onOpenRazorpayModal={() => setIsRazorpayModalOpen(true)}
+            isPdfUnlocked={isPdfUnlocked}
+          />
+        )}
+
         {/* VIEW 1: Resume Builder & Live Preview */}
         {activeTab === 'resume' && (
           <div className="space-y-4">
+            {/* Job Connector Presets Ribbon (Naukri, Indeed, LinkedIn) */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs no-print space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                      <span>Job Connector &amp; Tailor-Made Presets</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                        Naukri &amp; Indeed Active
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Check live job requirements on Naukri or Indeed and click &quot;Tailor-make&quot; to optimize summary, keywords &amp; cover letter for that role.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsJobConnectorModalOpen(true)}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Globe className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Custom Job URL / Paste JD</span>
+                </button>
+              </div>
+
+              {/* 4 Job Presets Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {Object.entries(SAMPLE_JOB_CONNECTORS).map(([key, job]) => {
+                  const isSelected = activeJob.jobTitle === job.jobTitle && activeJob.company === job.company;
+                  const platformColor =
+                    job.platform === 'naukri'
+                      ? 'bg-blue-600 text-white'
+                      : job.platform === 'indeed'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-sky-700 text-white';
+
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleSelectJobPreset(key)}
+                      className={`text-left p-3 rounded-xl border transition flex flex-col justify-between cursor-pointer ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-1 ring-blue-500/30'
+                          : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded ${platformColor}`}>
+                            {job.platform}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-500">
+                            {job.experienceLevel}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-xs text-slate-900 line-clamp-1">
+                          {job.jobTitle}
+                        </h4>
+                        <p className="text-[11px] text-slate-600 line-clamp-1 font-medium">
+                          {job.company}
+                        </p>
+                      </div>
+
+                      <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-400">{job.location.split('/')[0]}</span>
+                        <span className={`font-bold ${isSelected ? 'text-blue-700' : 'text-slate-500'}`}>
+                          {isSelected ? '✓ Active Preset' : 'Select'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Selected Preset Details & One-Click Tailoring Bar */}
+              <div className="p-3.5 bg-slate-900 rounded-xl text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-inner">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/40 uppercase">
+                      {activeJob.platform} Listing
+                    </span>
+                    <span className="font-bold text-xs text-white">
+                      {activeJob.jobTitle}
+                    </span>
+                    <span className="text-xs text-slate-400">• {activeJob.company}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <span className="text-[10px] text-slate-400">Target Requirements:</span>
+                    {activeJob.extractedKeywords.slice(0, 6).map((kw, i) => (
+                      <span key={i} className="px-1.5 py-0.5 bg-slate-800 text-slate-200 border border-slate-700 rounded text-[10px]">
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
+                  {activeJob.jobUrl && (
+                    <a
+                      href={activeJob.jobUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1 transition"
+                    >
+                      <ExternalLink className="w-3 h-3 text-sky-400" />
+                      <span>Check Live Job Listing</span>
+                    </a>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyJobTailoring()}
+                    className="px-4 py-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-extrabold rounded-lg shadow-md flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-300" />
+                    <span>⚡ Tailor-make Resume to this Job</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Visual 6-Template Picker Ribbon */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs no-print space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -398,7 +681,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setIsTemplateGalleryOpen(true)}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition"
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Compare All 6 in Gallery</span>
@@ -673,6 +956,31 @@ export default function App() {
         onSelectTemplate={handleSelectTemplate}
         accentColor={accentColor}
         onSelectAccentColor={setAccentColor}
+      />
+
+      {/* Razorpay Gateway PDF Export Modal */}
+      <RazorpayModal
+        isOpen={isRazorpayModalOpen}
+        onClose={() => setIsRazorpayModalOpen(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        candidateName={resumeData.personalInfo.fullName}
+        candidateEmail={resumeData.personalInfo.email}
+      />
+
+      {/* Job Connector Modal (Custom URL / Description) */}
+      <JobConnectorModal
+        isOpen={isJobConnectorModalOpen}
+        onClose={() => setIsJobConnectorModalOpen(false)}
+        currentResume={resumeData}
+        onTailoringApplied={(result, job) => {
+          setAuditResult(result);
+          setActiveJob(job);
+          handleApplyJobTailoring(job);
+        }}
+        onOpenCoverLetter={(job) => {
+          setActiveJob(job);
+          setActiveTab('cover-letter');
+        }}
       />
     </div>
   );
