@@ -3,62 +3,46 @@ import { ResumeData, JobConnector, TemplateConfig } from '../types/resume';
 export const INITIAL_RESUME: ResumeData = {
   personalInfo: {
     fullName: 'Ranjana Guha',
-    headline: 'Lead Data Analyst & Statistical Modeling Specialist (9+ Yrs Exp)',
+    headline: 'Statistical Analyst - Survey Analysis & Field Project Management',
     email: 'ranjana.guha@gmail.com',
-    phone: '+91 98301 45678',
+    phone: '+91 84202 69510',
     location: 'Kolkata, West Bengal (Open to Remote / Hybrid)',
     linkedin: 'linkedin.com/in/ranjana-guha-969a9a30b/',
     github: 'github.com/ranjana-guha',
     portfolio: 'ranjanaguha-analytics.dev'
   },
-  summary: 'Accomplished and results-oriented Lead Data Analyst with 9+ years of extensive experience specializing in statistical modeling, quantitative research, and end-to-end survey data analytics. Proven track record of designing rigorous statistical frameworks, multivariate models, and predictive algorithms that improved client retention by 34% and reduced survey sampling bias by 45%. Expert in Python, R, SQL, advanced survey weighting methodologies, and translating complex quantitative findings into high-impact executive strategies.',
+  summary: 'Accomplished Statistical Analyst and Field Project Specialist with extensive experience at the Indian Statistical Institute (ISI), specializing in end-to-end survey data analysis, field project management, and large-scale microdata processing. Expert in utilizing Advanced Excel, R programming, and DBF (dBase) databases for data cleaning, cross-tabulation, sampling validation, and quality assurance. Proven record directing multi-phase field survey operations, managing enumerator teams, ensuring data integrity, and conducting rigorous statistical evaluations.',
   experiences: [
     {
       id: 'exp-1',
-      company: 'Global Analytics & Research Partners',
-      role: 'Lead Data Analyst & Statistical Modeler',
-      location: 'Kolkata / Hybrid',
-      startDate: '2021-03',
+      company: 'Indian Statistical Institute (ISI)',
+      role: 'Survey Analyst & Field Project Manager',
+      location: 'Kolkata, West Bengal',
+      startDate: '2018-05',
       endDate: 'Present',
       current: true,
-      description: 'Heads statistical modeling, customer intelligence, and cross-functional survey analytics initiatives.',
+      description: 'Leads survey data analysis, field project coordination, quality assurance, and statistical data management using Excel, R, and DBF database systems.',
       bullets: [
-        'Spearheaded predictive statistical modeling initiatives utilizing Python, R, and SQL, developing customer churn and propensity models that boosted annual client retention by 34%.',
-        'Architected end-to-end survey analytics infrastructure for global customer experience studies (NPS, CSAT, CES), processing over 250,000+ respondent datasets with automated weighting and stratified sampling adjustments.',
-        'Engineered multivariate regression and ANOVA experimental designs that pinpointed key product satisfaction drivers, guiding $3.2M in roadmap investments.',
-        'Built executive Power BI dashboards with DAX and advanced statistical summaries, delivering weekly automated telemetry and variance tracking to C-suite leadership.',
-        'Mentored a high-performing team of 6 junior data analysts in statistical rigor, hypothesis testing, survey validation, and data storytelling.'
+        'Directed survey data analysis and field project management for large-scale statistical studies, overseeing field survey execution, enumerator teams, and rigorous quality audit checkpoints.',
+        'Processed, cleansed, and verified extensive survey microdata stored in DBF (dBase) database files and Excel, developing validation routines to eliminate non-sampling errors.',
+        'Conducted quantitative survey data analysis and cross-tabulations using R and Advanced Excel, computing sampling weights, standard errors, and descriptive statistical metrics.',
+        'Automated repetitive data extraction and merging pipelines from DBF formats into R and Excel, accelerating project data delivery cycles by 60%.',
+        'Trained and mentored field enumerators and junior research staff on survey questionnaire protocols, ethical data collection, and field consistency screening.'
       ]
     },
     {
       id: 'exp-2',
-      company: 'DataSphere Research Solutions',
-      role: 'Senior Statistical Analyst - Consumer Insights & Surveys',
+      company: 'Indian Statistical Institute (ISI)',
+      role: 'Statistical Field Project Coordinator & Data Analyst',
       location: 'Kolkata, India',
-      startDate: '2017-06',
-      endDate: '2021-02',
+      startDate: '2014-06',
+      endDate: '2018-04',
       current: false,
-      description: 'Delivered quantitative research, statistical sampling, and survey analytics for enterprise clients.',
+      description: 'Coordinated primary field survey scheduling, data digitization, and preliminary statistical tabulations.',
       bullets: [
-        'Formulated statistical methodologies for multi-country market research surveys, applying factor analysis, principal component analysis (PCA), and conjoint modeling on 100K+ respondent records.',
-        'Reduced sampling bias and non-response errors by 45% through post-stratification weighting, raking, and iterative proportional fitting techniques in R and SPSS.',
-        'Automated cross-tabulation (crosstabs), Chi-square significance testing, and z-test calculations, reducing quarterly report generation turnaround from 12 days to 36 hours.',
-        'Collaborated with product and marketing stakeholders to design reliable Likert scale surveys, testing internal consistency using Cronbach\'s alpha (>0.88).'
-      ]
-    },
-    {
-      id: 'exp-3',
-      company: 'Bengal Statistical Analytics',
-      role: 'Quantitative Data Analyst',
-      location: 'Kolkata, India',
-      startDate: '2015-01',
-      endDate: '2017-05',
-      current: false,
-      description: 'Conducted exploratory data analysis, hypothesis testing, and statistical econometric modeling.',
-      bullets: [
-        'Conducted exploratory data analysis (EDA), hypothesis testing, and time-series forecasting across demographic, econometric, and retail survey datasets.',
-        'Cleaned, transformed, and queried complex relational data using advanced SQL (PostgreSQL, MySQL, window functions, CTEs) and Python (Pandas, SciPy).',
-        'Produced comprehensive statistical research dossiers and regression diagnostic reports adopted by regional enterprise clients.'
+        'Managed primary field survey logistics, respondent sampling frames, and on-ground questionnaire scheduling across diverse field locations.',
+        'Performed data entry verification, legacy DBF database conversion, and consistency checking in Excel and R to maintain high data fidelity.',
+        'Generated cross-tabulation summaries, frequency charts, and statistical briefing notes for principal research investigators and academic faculty.'
       ]
     }
   ],
@@ -71,10 +55,10 @@ export const INITIAL_RESUME: ResumeData = {
       location: 'Kolkata, India',
       startDate: '2012',
       endDate: '2014',
-      gpa: 'First Class Honors (8.6 / 10.0)',
+      gpa: 'First Class Honors',
       highlights: [
         'Specialization in Advanced Statistical Modeling, Multivariate Analysis, and Sample Surveys',
-        'Academic Dissertation on Non-parametric Regression & Survey Weighting Methodologies'
+        'Academic Focus on Sample Survey Methodologies, Weighting & Empirical Estimation'
       ]
     },
     {
@@ -93,47 +77,47 @@ export const INITIAL_RESUME: ResumeData = {
   ],
   skills: [
     {
-      category: 'Statistical Modeling & Analytics',
-      items: ['Linear & Logistic Regression', 'Multivariate Analysis', 'ANOVA / MANOVA', 'Hypothesis Testing (t-test, Chi-square, z-test)', 'Time Series Forecasting (ARIMA)', 'Factor Analysis & PCA', 'Clustering (K-Means)', 'Propensity Score Matching']
+      category: 'Survey Analysis & Field Operations',
+      items: ['Survey Data Analysis', 'Field Project Management', 'Enumerator Training & Supervision', 'Questionnaire Scheduling', 'Sampling Methodologies', 'Cross-Tabulation & Aggregation', 'Non-Sampling Error Screening', 'Quality Control & Audit']
     },
     {
-      category: 'Survey Analytics & Research Design',
-      items: ['Survey Design & Sampling', 'Stratified Sampling', 'Post-Stratification Weighting & Raking', 'Likert Scale Analysis', 'NPS & CSAT Measurement', 'Cross-Tabulation', 'Conjoint Analysis', 'Qualtrics / SurveyMonkey', 'Non-response Imputation']
+      category: 'Core Tools & Data Processing',
+      items: ['Advanced Excel (VBA, Macros, Pivot Tables, Data Cleaning)', 'R (tidyverse, survey, data.table)', 'DBF Databases (dBase / Microdata Files)', 'SQL (Data Extraction)', 'Data Digitization & File Conversion']
     },
     {
-      category: 'Programming & Statistical Tools',
-      items: ['Python (Pandas, NumPy, SciPy, Statsmodels, Scikit-learn)', 'R (tidyverse, ggplot2, caret)', 'SQL (PostgreSQL, MySQL, Window Functions, CTEs)', 'SPSS', 'SAS', 'Stata']
+      category: 'Statistical Methodologies',
+      items: ['Descriptive & Inferential Statistics', 'Hypothesis Testing (t-test, Chi-square, ANOVA)', 'Sampling Weights & Estimation', 'Data Validation & Consistency Checks', 'Variance Estimation']
     },
     {
-      category: 'BI, Visualization & Tools',
-      items: ['Power BI (DAX, Data Modeling)', 'Tableau', 'Advanced Excel (VBA, Pivot Tables, Solver)', 'Looker Studio', 'Git', 'Data Storytelling & Executive Reporting']
+      category: 'Reporting & Documentation',
+      items: ['Statistical Project Documentation', 'Research Briefings & Tabulation', 'Field Progress Reporting', 'Excel Statistical Summaries & Charts']
     }
   ],
   projects: [
     {
       id: 'proj-1',
-      title: 'Global Customer Experience & NPS Survey Modeling Framework',
-      subtitle: 'Multivariate Survey Analytics Pipeline',
-      link: 'github.com/ranjana-guha/survey-nps-framework',
-      startDate: '2023',
-      endDate: '2024',
-      description: 'Longitudinal statistical survey engine processing 250K+ multi-channel respondent feedbacks.',
+      title: 'Automated Field Survey DBF-to-R Data Extraction & Validation Pipeline',
+      subtitle: 'Survey Microdata Automation',
+      link: 'github.com/ranjana-guha/survey-dbf-pipeline',
+      startDate: '2022',
+      endDate: '2023',
+      description: 'Automated script suite in R and Excel to parse, validate, and standardize raw DBF survey data files.',
       bullets: [
-        'Designed automated post-stratification sampling weight pipeline in Python and R, calibrating demographic skews and non-response bias.',
-        'Constructed binomial logistic regression model isolating top 5 driver attributes predicting brand churn with 86% accuracy.'
+        'Engineered an automated script suite in R and Excel to ingest raw DBF survey data, automatically flagging out-of-range codes and duplicate records.',
+        'Streamlined multi-round field survey reconciliation, reducing manual data checking time by over 50%.'
       ]
     },
     {
       id: 'proj-2',
-      title: 'Automated Statistical Significance & Cross-Tabulation Suite',
-      subtitle: 'Open Source Python/R Research Tool',
-      link: 'github.com/ranjana-guha/stats-crosstab-engine',
-      startDate: '2022',
-      endDate: '2023',
-      description: 'Automated survey tabulation engine with automatic Chi-square and z-test calculations.',
+      title: 'Field Survey Sampling & Cross-Tabulation Suite in R & Excel',
+      subtitle: 'Statistical Survey Tools',
+      link: 'github.com/ranjana-guha/survey-cross-tabulation',
+      startDate: '2020',
+      endDate: '2021',
+      description: 'Standardized statistical analysis workbook and script library generating verified survey cross-tabulations and summary tables.',
       bullets: [
-        'Built automated cross-tabulation generator producing formatted statistical summaries and significance flags in seconds.',
-        'Adopted by market research teams to process 50+ enterprise survey waves with zero computational errors.'
+        'Developed standardized templates for cross-tabulation, subgroup aggregation, and weighted estimates across survey rounds.',
+        'Adopted by research teams to accelerate publication-ready statistical tables with zero computational discrepancies.'
       ]
     }
   ],

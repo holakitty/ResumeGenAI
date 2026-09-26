@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeCraft ATS — Smart Resume & Cover Letter Builder</title>
+  <meta name="description" content="Production-ready ATS resume and cover letter builder with 6 colorful templates, Naukri/Indeed job connectors, real-time ATS scoring, and AI tailoring." />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="ResumeCraft ATS — Smart Resume & Cover Letter Builder" />
+  <meta property="og:description" content="Build 100% ATS-compliant resumes with 6 colorful templates, Naukri & Indeed job tailoring, and matched cover letters." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1200&auto=format&fit=crop&q=80" />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=EB+Garamond:ital,wght@0,500;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN for instant, zero-build GitHub Pages hosting -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"EB Garamond"', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+              950: '#1e1b4b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .gradient-glow {
+      background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(15, 23, 42, 0) 70%);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Background Decorative Ambient Lighting -->
+  <div class="fixed inset-0 pointer-events-none gradient-glow z-0"></div>
+
+  <!-- Navigation Bar -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-linear-to-tr from-indigo-600 via-blue-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 font-extrabold text-white text-lg">
+          RC
+        </div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight bg-linear-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
+            ResumeCraft <span class="text-indigo-400">ATS</span>
+          </span>
+          <span class="hidden sm:inline-block ml-2 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            v2.4 Production
+          </span>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#templates" class="hover:text-white transition">6 ATS Templates</a>
+        <a href="#features" class="hover:text-white transition">Features</a>
+        <a href="#job-connector" class="hover:text-white transition">Job Tailoring</a>
+        <a href="#audit" class="hover:text-white transition">ATS Scoring</a>
+        <a href="#tech-stack" class="hover:text-white transition">Tech Stack</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a
+          href="https://ais-pre-5oxtp4fxcbccd6xaxlhmd3-644571359914.asia-east1.run.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 shadow-md shadow-indigo-500/25 transition transform hover:-translate-y-0.5 flex items-center gap-1.5"
+        >
+          <span>Launch Live App</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-20 pb-24 overflow-hidden">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      
+      <!-- Announcement Pill -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-indigo-500/30 text-xs font-medium text-indigo-300 mb-8 backdrop-blur-xs shadow-inner">
+        <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Workday, Greenhouse, Taleo & Naukri 100% Parsable</span>
+        <span class="text-slate-600">|</span>
+        <span class="text-white font-semibold">6 Vibrant Design Templates</span>
+      </div>
+
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.15] mb-6">
+        The Intelligent <br />
+        <span class="bg-linear-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
+          ATS Resume & Cover Letter
+        </span>
+        Builder
+      </h1>
+
+      <p class="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+        Engineered specifically to beat ATS filters while delighting hiring managers. Seamlessly scrape & tailor to jobs on <strong class="text-slate-200">Naukri</strong>, <strong class="text-slate-200">Indeed</strong>, and <strong class="text-slate-200">LinkedIn</strong> with customized typography, 8 color themes, and instant PDF exports.
+      </p>
+
+      <!-- CTA Row -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+        <a
+          href="https://ais-pre-5oxtp4fxcbccd6xaxlhmd3-644571359914.asia-east1.run.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+        >
+          <span>Open Web Application</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </a>
+
+        <a
+          href="#templates"
+          class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-sm text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:text-white transition flex items-center justify-center gap-2"
+        >
+          <span>Explore 6 Templates</span>
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </a>
+      </div>
+
+      <!-- Live Stats Ticker -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6 border-t border-slate-800/80 text-left">
+        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/50">
+          <div class="text-2xl font-black text-emerald-400">99%</div>
+          <div class="text-xs text-slate-400 font-medium">ATS Parsability Rate</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/50">
+          <div class="text-2xl font-black text-indigo-400">6</div>
+          <div class="text-xs text-slate-400 font-medium">Colorful ATS Templates</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/50">
+          <div class="text-2xl font-black text-blue-400">3 Portals</div>
+          <div class="text-xs text-slate-400 font-medium">Naukri, Indeed & LinkedIn</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/50">
+          <div class="text-2xl font-black text-amber-400">0s</div>
+          <div class="text-xs text-slate-400 font-medium">Instant PDF & TXT Export</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive 6 Templates Showcase Section -->
+  <section id="templates" class="py-20 bg-slate-900/50 border-y border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+          Designed for Humans & Search Algorithms
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3 mb-4 tracking-tight">
+          Choose from 6 Colorful, ATS-Proof Templates
+        </h2>
+        <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+          Standard multi-column layouts get mangled by enterprise recruiters' ATS parsers. Our 6 layouts use single-column structural semantics, crisp visual dividers, and vibrant accent palettes that pass every parse test.
+        </p>
+      </div>
+
+      <!-- 6 Template Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Template 1: Harvard Crimson -->
+        <div class="group bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-2xl p-6 transition duration-200 flex flex-col justify-between hover:shadow-xl hover:shadow-red-950/30">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="w-3.5 h-3.5 rounded-full bg-red-700 shadow-sm shadow-red-500/50"></span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
+                99% ATS Parsable
+              </span>
+            </div>
+            <!-- Mockup Card -->
+            <div class="bg-white rounded-lg p-3 text-slate-800 font-serif text-[10px] space-y-2 mb-4 border border-red-200/50 shadow-inner">
+              <div class="border-b-2 border-red-800 pb-1 text-center font-bold text-red-800 uppercase tracking-wider">
+                Harvard Ivy Standard
+              </div>
+              <div class="h-1 bg-slate-200 rounded w-full"></div>
+              <div class="h-1 bg-slate-100 rounded w-5/6"></div>
+              <div class="border-b border-red-800/30 text-[8px] font-sans font-bold text-red-900 uppercase">
+                Professional Experience
+              </div>
+              <div class="h-1 bg-slate-200 rounded w-full"></div>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-red-400 transition">
+              Harvard Ivy Crimson
+            </h3>
+            <div class="text-xs font-semibold text-red-400 mt-0.5 mb-2 font-mono">
+              Academic & Wall Street Gold Standard
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Timeless Garamond serif typography, authoritative crimson rules, and disciplined hierarchical structure. Top choice for Consulting, Strategy, Finance, and Academic leadership.
+            </p>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span>Font: Serif</span>
+            <span class="text-red-400 font-medium font-mono">#991b1b</span>
+          </div>
+        </div>
+
+        <!-- Template 2: Modern Tech Pro -->
+        <div class="group bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-2xl p-6 transition duration-200 flex flex-col justify-between hover:shadow-xl hover:shadow-blue-950/30">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="w-3.5 h-3.5 rounded-full bg-blue-600 shadow-sm shadow-blue-500/50"></span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
+                98% ATS Parsable
+              </span>
+            </div>
+            <!-- Mockup Card -->
+            <div class="bg-white rounded-lg p-3 text-slate-800 font-sans text-[10px] space-y-2 mb-4 border border-blue-200/50 shadow-inner">
+              <div class="border-b-2 border-blue-600 pb-1 flex justify-between items-center">
+                <span class="font-extrabold text-blue-600">Modern Tech Pro</span>
+                <span class="text-[7px] bg-blue-100 text-blue-800 px-1 py-0.2 rounded font-bold">Verified</span>
+              </div>
+              <div class="flex gap-1">
+                <span class="bg-blue-50 text-blue-900 border border-blue-200 px-1 rounded text-[7px]">Excel</span>
+                <span class="bg-blue-50 text-blue-900 border border-blue-200 px-1 rounded text-[7px]">R</span>
+                <span class="bg-blue-50 text-blue-900 border border-blue-200 px-1 rounded text-[7px]">DBF</span>
+              </div>
+              <div class="h-1 bg-slate-200 rounded w-full"></div>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition">
+              Modern Tech Pro
+            </h3>
+            <div class="text-xs font-semibold text-blue-400 mt-0.5 mb-2 font-mono">
+              Electric Blue & Modern Badges
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Designed for Data Analysts, Software Engineers, and Cloud Architects. Features prominent technical skill badges, measurable impact highlights, and high-contrast headings.
+            </p>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span>Font: Clean Sans</span>
+            <span class="text-blue-400 font-medium font-mono">#2563eb</span>
+          </div>
+        </div>
+
+        <!-- Template 3: Executive Slate & Indigo -->
+        <div class="group bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-2xl p-6 transition duration-200 flex flex-col justify-between hover:shadow-xl hover:shadow-indigo-950/30">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="w-3.5 h-3.5 rounded-full bg-indigo-600 shadow-sm shadow-indigo-500/50"></span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
+                97% ATS Parsable
+              </span>
+            </div>
+            <!-- Mockup Card -->
+            <div class="bg-white rounded-lg p-3 text-slate-800 font-sans text-[10px] space-y-2 mb-4 border border-indigo-200/50 shadow-inner">
+              <div class="border-b-4 border-indigo-600 pb-1 flex justify-between items-baseline">
+                <span class="font-black text-indigo-900 uppercase">Executive Profile</span>
+                <span class="text-[7px] text-slate-500">Director Level</span>
+              </div>
+              <div class="p-1 rounded bg-indigo-50/60 border border-indigo-100 text-[8px] italic">
+                Strategic Quantitative Leadership
+              </div>
+              <div class="h-1 bg-slate-200 rounded w-full"></div>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition">
+              Executive Slate & Indigo
+            </h3>
+            <div class="text-xs font-semibold text-indigo-400 mt-0.5 mb-2 font-mono">
+              Director & Leadership Command
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Substantial 4px colored accent banner, structured competency highlight cards, and authoritative typography for Senior Leads, Directors, and Principal Contributors.
+            </p>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span>Font: Bold Sans</span>
+            <span class="text-indigo-400 font-medium font-mono">#4f46e5</span>
+          </div>
+        </div>
+
+        <!-- Template 4: Corporate Navy -->
+        <div class="group bg-slate-900 border border-slate-800 hover:border-blue-700/50 rounded-2xl p-6 transition duration-200 flex flex-col justify-between hover:shadow-xl hover:shadow-blue-950/30">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="w-3.5 h-3.5 rounded-full bg-blue-900 shadow-sm shadow-blue-700/50"></span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
+                98% ATS Parsable
+              </span>
+            </div>
+            <!-- Mockup Card -->
+            <div class="bg-white rounded-lg p-3 text-slate-800 font-sans text-[10px] space-y-2 mb-4 border border-blue-900/30 shadow-inner">
+              <div class="border-b-2 border-blue-900 pb-1 font-black text-blue-900 uppercase">
+                Corporate Navy
+              </div>
+              <div class="h-1 bg-slate-300 rounded w-3/4"></div>
+              <div class="border-b border-blue-900 pb-0.5 text-[8px] font-bold text-blue-950 uppercase">
+                Work Experience
+              </div>
+              <div class="h-1 bg-slate-200 rounded w-full"></div>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-blue-300 transition">
+              Corporate Navy
+            </h3>
+            <div class="text-xs font-semibold text-blue-300 mt-0.5 mb-2 font-mono">
+              Fortune 500 Enterprise Standard
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Deep royal navy section dividers with bold action-oriented bullet hierarchies. High-density corporate formatting optimized for enterprise recruiters and global MNCs.
+            </p>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span>Font: Structured Sans</span>
+            <span class="text-blue-300 font-medium font-mono">#1e3a8a</span>
+          </div>
+        </div>
+
+        <!-- Template 5: Nordic Mint & Emerald -->
+        <div class="group bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 transition duration-200 flex flex-col justify-between hover:shadow-xl hover:shadow-emerald-950/30">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 shadow-sm shadow-emerald-500/50"></span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
+                96% ATS Parsable
+              </span>
+            </div>
+            <!-- Mockup Card -->
+            <div class="bg-white rounded-lg p-3 text-stone-800 font-sans text-[10px] space-y-2 mb-4 border border-emerald-200/50 shadow-inner">
+              <div class="border-b-2 border-emerald-600 pb-1 font-extrabold text-emerald-800">
+                Nordic Mint Compact
+              </div>
+              <div class="p-1 rounded bg-emerald-50/80 border border-emerald-200 text-[8px] text-emerald-900">
+                Methodologies: Regression, ANOVA, SQL
+              </div>
+              <div class="h-1 bg-stone-200 rounded w-full"></div>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">
+              Nordic Mint & Emerald
+            </h3>
+            <div class="text-xs font-semibold text-emerald-400 mt-0.5 mb-2 font-mono">
+              High-Density 1-Page Precision
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Minimalist Scandinavian aesthetic maximizing every square millimeter. Perfect for fitting extensive 8-10+ year careers cleanly into a tight 1-2 page layout without crowding.
+            </p>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span>Font: Compact Sans</span>
+            <span class="text-emerald-400 font-medium font-mono">#059669</span>
+          </div>
+        </div>
+
+        <!-- Template 6: Editorial Rose & Burgundy -->
+        <div class="group bg-slate-900 border border-slate-800 hover:border-rose-500/50 rounded-2xl p-6 transition duration-200 flex flex-col justify-between hover:shadow-xl hover:shadow-rose-950/30">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="w-3.5 h-3.5 rounded-full bg-rose-900 shadow-sm shadow-rose-500/50"></span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/40">
+                97% ATS Parsable
+              </span>
+            </div>
+            <!-- Mockup Card -->
+            <div class="bg-white rounded-lg p-3 text-stone-900 font-serif text-[10px] space-y-2 mb-4 border border-rose-200/50 shadow-inner">
+              <div class="border-b-2 border-rose-900 pb-1 text-center font-bold text-rose-900 uppercase">
+                Editorial Biography
+              </div>
+              <div class="p-1 rounded bg-rose-50/70 border border-rose-200 text-[8px] italic text-rose-950 text-center">
+                “Leading quantitative research with rigor”
+              </div>
+              <div class="h-1 bg-stone-200 rounded w-full"></div>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-rose-400 transition">
+              Editorial Rose & Burgundy
+            </h3>
+            <div class="text-xs font-semibold text-rose-400 mt-0.5 mb-2 font-mono">
+              Sophisticated Editorial & Thought Leader
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Warm Garamond serif styling with letter-spacing refinement, executive quote-style summary box, and rose accents. Tailored for Research Leads, Product Strategists, and Analysts.
+            </p>
+          </div>
+          <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span>Font: Garamond Serif</span>
+            <span class="text-rose-400 font-medium font-mono">#881337</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Live Theme Color Palette Banner -->
+      <div class="mt-12 p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h4 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>🎨 8 Real-Time Global Color Palettes</span>
+          </h4>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Switch with 1-click across Crimson Ruby, Electric Blue, Royal Indigo, Corporate Navy, Emerald Mint, Editorial Rose, Sunset Amber, and Ocean Teal.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full bg-red-700 ring-2 ring-white/10" title="Crimson Ruby"></span>
+          <span class="w-5 h-5 rounded-full bg-blue-600 ring-2 ring-white/10" title="Electric Blue"></span>
+          <span class="w-5 h-5 rounded-full bg-indigo-600 ring-2 ring-white/10" title="Royal Indigo"></span>
+          <span class="w-5 h-5 rounded-full bg-blue-900 ring-2 ring-white/10" title="Corporate Navy"></span>
+          <span class="w-5 h-5 rounded-full bg-emerald-600 ring-2 ring-white/10" title="Emerald Mint"></span>
+          <span class="w-5 h-5 rounded-full bg-rose-900 ring-2 ring-white/10" title="Editorial Rose"></span>
+          <span class="w-5 h-5 rounded-full bg-amber-600 ring-2 ring-white/10" title="Sunset Amber"></span>
+          <span class="w-5 h-5 rounded-full bg-teal-600 ring-2 ring-white/10" title="Ocean Teal"></span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Core Features Grid -->
+  <section id="features" class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+          Complete Job Application Suite
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3 mb-4 tracking-tight">
+          Everything You Need to Win High-Paying Roles
+        </h2>
+        <p class="text-slate-400 text-sm sm:text-base">
+          From scraping live portal postings to auditing keyword density and generating matched cover letters.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Feature 1 -->
+        <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+          <div class="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xl mb-5">
+            🎯
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">1-Click Portal Connectors</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Paste job links from <strong class="text-slate-200">Naukri.com</strong>, <strong class="text-slate-200">Indeed</strong>, and <strong class="text-slate-200">LinkedIn</strong> or choose from curated lead analyst presets. The parser instantly extracts essential keywords and hard requirements.
+          </p>
+          <ul class="text-[11px] text-slate-300 space-y-1.5 font-mono">
+            <li class="flex items-center gap-1.5">✓ Live URL metadata scraper</li>
+            <li class="flex items-center gap-1.5">✓ Indian & Global portal presets</li>
+            <li class="flex items-center gap-1.5">✓ Keyword frequency analysis</li>
+          </ul>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+          <div class="w-12 h-12 rounded-xl bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl mb-5">
+            📊
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Real-Time ATS Audit Engine</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Get an instant 0–100 match score with a detailed breakdown of matched vs. missing skills, metric quantifiability verification, and single-column formatting compliance.
+          </p>
+          <ul class="text-[11px] text-slate-300 space-y-1.5 font-mono">
+            <li class="flex items-center gap-1.5">✓ Workday & Taleo parser audit</li>
+            <li class="flex items-center gap-1.5">✓ Action-verb & metric check</li>
+            <li class="flex items-center gap-1.5">✓ Instant tailoring suggestions</li>
+          </ul>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+          <div class="w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xl mb-5">
+            ✍️
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Matching Cover Letter Studio</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Generate matching cover letters styled in the same typography and accent colors as your resume. Select tone from Confident to Executive, customize paragraphs, and export to PDF.
+          </p>
+          <ul class="text-[11px] text-slate-300 space-y-1.5 font-mono">
+            <li class="flex items-center gap-1.5">✓ Unified color & font branding</li>
+            <li class="flex items-center gap-1.5">✓ 4 distinct executive tones</li>
+            <li class="flex items-center gap-1.5">✓ Dedicated hiring manager salutations</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Technical Architecture & GitHub Setup -->
+  <section id="tech-stack" class="py-20 bg-slate-900/40 border-t border-slate-800/80">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        
+        <!-- Left: Code & Stack Overview -->
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+            Open Architecture
+          </span>
+          <h2 class="text-3xl font-extrabold text-white mt-3 mb-4">
+            Built with Modern Full-Stack TypeScript
+          </h2>
+          <p class="text-slate-400 text-sm leading-relaxed mb-6">
+            Lightweight, high-performance React 19 architecture bundled with Vite. Accompanied by an Express.js middleware server for secure server-side AI processing and portal scraping.
+          </p>
+
+          <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">FRONTEND</span>
+              <span class="text-indigo-300 font-bold">React 19 + TypeScript</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">BUILD ENGINE</span>
+              <span class="text-emerald-300 font-bold">Vite 6</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">STYLING</span>
+              <span class="text-blue-300 font-bold">Tailwind CSS 4</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">BACKEND</span>
+              <span class="text-amber-300 font-bold">Express + TSX Server</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: GitHub Upload Quickstart Terminal Box -->
+        <div class="bg-slate-950 rounded-2xl border border-slate-800 p-6 shadow-2xl relative overflow-hidden font-mono text-xs">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-800 text-slate-400 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+              <span class="ml-2 text-slate-300 font-bold">github-upload-guide.sh</span>
+            </div>
+            <span class="text-[10px] text-slate-500">Bash</span>
+          </div>
+
+          <div class="space-y-3 text-slate-300">
+            <div>
+              <span class="text-slate-500"># 1. Clone or initialize repository</span>
+              <p class="text-emerald-400">git init</p>
+              <p class="text-emerald-400">git add .</p>
+              <p class="text-emerald-400">git commit -m "Initial commit: ResumeCraft ATS application with 6 templates"</p>
+            </div>
+
+            <div>
+              <span class="text-slate-500"># 2. Push to your GitHub repository</span>
+              <p class="text-emerald-400">git remote add origin https://github.com/your-username/resumecraft-ats.git</p>
+              <p class="text-emerald-400">git branch -M main</p>
+              <p class="text-emerald-400">git push -u origin main</p>
+            </div>
+
+            <div class="p-3 rounded-lg bg-indigo-950/40 border border-indigo-800/40 text-[11px] text-indigo-200">
+              <strong class="text-white block mb-0.5">🚀 Enable GitHub Pages in 1 Click:</strong>
+              Navigate to <span class="text-white font-semibold">Settings &gt; Pages &gt; Build and deployment</span>.<br />
+              Select Branch: <span class="text-white font-semibold">main</span>, Folder: <span class="text-white font-semibold">/docs</span>.<br />
+              Your landing page goes live instantly at <span class="text-white underline">your-username.github.io/resumecraft-ats</span>!
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Ready to Launch Callout -->
+  <section class="py-20 relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <div class="p-10 rounded-3xl bg-linear-to-b from-indigo-900/40 to-slate-900/80 border border-indigo-500/30 backdrop-blur-md shadow-2xl">
+        <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4">
+          Ready to Craft Your Standout Resume?
+        </h2>
+        <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-8">
+          Join thousands of analysts, developers, and leaders landing more interviews with clean, ATS-compliant formats.
+        </p>
+
+        <a
+          href="https://ais-pre-5oxtp4fxcbccd6xaxlhmd3-644571359914.asia-east1.run.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/40 transition transform hover:-translate-y-0.5"
+        >
+          <span>Launch ResumeCraft ATS App</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-10 border-t border-slate-900 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-300">ResumeCraft ATS</span>
+        <span>•</span>
+        <span>100% Client-Side Privacy &amp; Real-Time Tailoring</span>
+      </div>
+      <div>
+        <span>Built for high-impact candidates • Compatible with Workday, Taleo, Greenhouse &amp; Naukri</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

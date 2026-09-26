@@ -129,33 +129,33 @@ export const ImportFeedModal: React.FC<ImportFeedModalProps> = ({
 
   const handleLoadRanjanaSample = () => {
     setInputText(`Ranjana Guha
-Lead Data Analyst & Statistical Modeling Specialist | 9+ Years Experience
-Kolkata, West Bengal (Open to Remote / Hybrid) • ranjana.guha@gmail.com • +91 98301 45678 • linkedin.com/in/ranjana-guha-969a9a30b/
+Statistical Analyst - Survey Analysis & Field Project Management
+Kolkata, West Bengal (Open to Remote / Hybrid) • ranjana.guha@gmail.com • +91 84202 69510 • linkedin.com/in/ranjana-guha-969a9a30b/
 
 Summary:
-Accomplished Senior Data Analyst with 9+ years of extensive experience specializing in statistical modeling, quantitative research, and end-to-end survey data analytics. Proven record designing predictive models and survey sampling frameworks that improved customer retention by 34% and reduced survey bias by 45%. Expert in Python, R, SQL, Power BI, SPSS, and survey weighting methodologies.
+Accomplished Statistical Analyst and Field Project Specialist with extensive experience at the Indian Statistical Institute (ISI), specializing in end-to-end survey data analysis, field project management, and large-scale microdata processing. Expert in utilizing Advanced Excel, R programming, and DBF (dBase) databases for data cleaning, cross-tabulation, sampling validation, and quality assurance. Proven record directing multi-phase field survey operations, managing enumerator teams, ensuring data integrity, and conducting rigorous statistical evaluations.
 
 Experience:
-Lead Data Analyst & Statistical Modeler - Global Analytics & Research Partners
-Mar 2021 - Present (Kolkata / Hybrid)
-- Spearheaded predictive statistical modeling initiatives in Python, R, and SQL, developing customer churn and propensity models that boosted client retention by 34%.
-- Architected end-to-end survey analytics infrastructure for global customer experience studies (NPS, CSAT), analyzing 250,000+ respondent records with stratified sampling and automated post-stratification weighting.
-- Formulated multivariate regression and ANOVA experimental designs that isolated key product satisfaction drivers, guiding $3.2M in roadmap allocations.
-- Built executive Power BI dashboards with DAX and advanced statistical summaries, delivering weekly automated telemetry to C-suite leadership.
-- Mentored a team of 6 junior data analysts in statistical inference, hypothesis testing, and survey validation.
+Survey Analyst & Field Project Manager - Indian Statistical Institute (ISI)
+May 2018 - Present (Kolkata, West Bengal)
+- Directed survey data analysis and field project management for large-scale statistical studies, overseeing field survey execution, enumerator teams, and rigorous quality audit checkpoints.
+- Processed, cleansed, and verified extensive survey microdata stored in DBF (dBase) database files and Excel, developing validation routines to eliminate non-sampling errors.
+- Conducted quantitative survey data analysis and cross-tabulations using R and Advanced Excel, computing sampling weights, standard errors, and descriptive statistical metrics.
+- Automated repetitive data extraction and merging pipelines from DBF formats into R and Excel, accelerating project data delivery cycles by 60%.
+- Trained and mentored field enumerators and junior research staff on survey questionnaire protocols, ethical data collection, and field consistency screening.
 
-Senior Statistical Analyst - Consumer Insights & Surveys - DataSphere Research Solutions
-Jun 2017 - Feb 2021 (Kolkata)
-- Designed statistical methodologies for multi-country market research surveys, applying factor analysis, PCA, and conjoint modeling on 100K+ respondent records.
-- Reduced sampling bias and non-response errors by 45% through post-stratification weighting, raking, and iterative proportional fitting in R and SPSS.
-- Automated cross-tabulation (crosstabs), Chi-square significance testing, and z-test calculations, reducing quarterly report turnaround by 60%.
+Statistical Field Project Coordinator & Data Analyst - Indian Statistical Institute (ISI)
+Jun 2014 - Apr 2018 (Kolkata, India)
+- Managed primary field survey logistics, respondent sampling frames, and on-ground questionnaire scheduling across diverse field locations.
+- Performed data entry verification, legacy DBF database conversion, and consistency checking in Excel and R to maintain high data fidelity.
+- Generated cross-tabulation summaries, frequency charts, and statistical briefing notes for principal research investigators and academic faculty.
 
 Education:
 University of Calcutta - M.Sc. in Statistics (2012 - 2014), First Class Honors
 Presidency College / University - B.Sc. (Hons.) in Statistics with Mathematics (2009 - 2012), First Class Honors
 
 Skills:
-Linear & Logistic Regression, Multivariate Analysis, ANOVA, Hypothesis Testing (t-test, Chi-square), Time Series Forecasting, Factor Analysis, Survey Design & Sampling, Post-Stratification Weighting, Likert Scale Analysis, NPS/CSAT Modeling, Cross-Tabulation, Python (Pandas, SciPy, Statsmodels), R (tidyverse), SQL, Power BI (DAX), Tableau, Advanced Excel, SPSS, SAS`);
+Survey Data Analysis, Field Project Management, Enumerator Training & Supervision, Questionnaire Scheduling, Sampling Methodologies, Cross-Tabulation & Aggregation, Non-Sampling Error Screening, Quality Control & Audit, Advanced Excel (VBA, Macros, Pivot Tables, Data Cleaning), R (tidyverse, survey, data.table), DBF Databases (dBase / Microdata Files), SQL, Descriptive & Inferential Statistics, Hypothesis Testing, Sampling Weights`);
   };
 
   return (
