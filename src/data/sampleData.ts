@@ -121,22 +121,7 @@ export const INITIAL_RESUME: ResumeData = {
       ]
     }
   ],
-  certifications: [
-    {
-      id: 'cert-1',
-      name: 'Advanced Statistical Modeling & Quantitative Methods with Python',
-      issuer: 'DeepLearning.AI / Coursera',
-      issueDate: '2022-11',
-      credentialUrl: 'coursera.org/verify'
-    },
-    {
-      id: 'cert-2',
-      name: 'Certified Analytics Professional (CAP)',
-      issuer: 'INFORMS',
-      issueDate: '2021-08',
-      credentialUrl: 'informs.org/cap'
-    }
-  ]
+  certifications: []
 };
 
 export const SAMPLE_JOB_CONNECTORS: Record<string, JobConnector> = {

@@ -202,8 +202,9 @@ Your task is to parse raw text (from an uploaded PDF/Word CV or LinkedIn profile
 
 CRITICAL ANTI-HALLUCINATION RULES:
 1. DO NOT invent, hallucinate, or substitute real institutions, organizations, or employers with generic corporate placeholders (such as "Global Analytics & Research Partners" or "DataSphere").
-2. Extract the EXACT organization names, titles, and tools directly from the provided text. For example, if the candidate was at the "Indian Statistical Institute" (ISI) working in survey analysis and field project management using Excel, R, and DBF files, you MUST preserve "Indian Statistical Institute (ISI)", their exact field project management role, and exact tools (Excel, R, DBF).
-3. If specific dates, locations, or accomplishments are present in the text, preserve them accurately.
+2. DO NOT invent, fabricate, or add any certifications or courses (e.g. Coursera, CAP, DeepLearning.AI). If no certifications are explicitly present in the CV text, set certifications: [].
+3. In experiences, add and preserve ALL work experiences present in the CV in full detail and chronological order. Never omit or fabricate job experiences.
+4. Extract the EXACT organization names, titles, and tools directly from the provided text. For example, the candidate's authentic career is at the "Indian Statistical Institute (ISI)" in survey analysis and field project management using Advanced Excel, R, and DBF files. You MUST preserve "Indian Statistical Institute (ISI)" and all exact responsibilities.
 
 Schema to extract:
 - Personal info: fullName, headline, email, phone, location, linkedin, github, portfolio
@@ -365,14 +366,7 @@ Format bullets with clear, factual action verbs based strictly on the candidate'
         ]
       }
     ],
-    certifications: [
-      {
-        id: 'cert-uploaded-1',
-        name: 'Advanced Statistical Modeling & Quantitative Methods with Python',
-        issuer: 'DeepLearning.AI / Coursera',
-        issueDate: '2022-11'
-      }
-    ]
+    certifications: []
   };
 }
 
@@ -716,14 +710,7 @@ ${cleanScraped || 'Direct LinkedIn fetch was blocked by login wall; parse accura
             ]
           }
         ],
-        certifications: [
-          {
-            id: 'cert-1',
-            name: 'Advanced Statistical Modeling & Quantitative Methods with Python',
-            issuer: 'DeepLearning.AI / Coursera',
-            issueDate: '2022-11'
-          }
-        ]
+        certifications: []
       };
       return res.json({ success: true, resume: fallbackResume });
     }
