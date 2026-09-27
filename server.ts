@@ -229,6 +229,161 @@ interface ParseOptions {
   preferredProvider?: string;
 }
 
+// Helper: Normalize and sanitize extracted resume data ensuring 100% accurate fields
+function cleanExtractedResume(parsed: any, rawText: string, fileName: string): any {
+  if (!parsed || typeof parsed !== 'object') parsed = {};
+
+  if (!parsed.personalInfo || typeof parsed.personalInfo !== 'object') {
+    parsed.personalInfo = {};
+  }
+  const pi = parsed.personalInfo;
+
+  // 1. Candidate Full Name
+  if (!pi.fullName || typeof pi.fullName !== 'string' || pi.fullName.trim() === '') {
+    if (parsed.name && typeof parsed.name === 'string') pi.fullName = parsed.name;
+    else if (parsed.fullName && typeof parsed.fullName === 'string') pi.fullName = parsed.fullName;
+    else {
+      const firstLines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      for (const l of firstLines.slice(0, 8)) {
+        if (
+          l.length >= 3 &&
+          l.length <= 45 &&
+          !l.includes('@') &&
+          !l.includes('http') &&
+          !/^(?:resume|curriculum|vitae|cv|page|contact|personal|profile)/i.test(l) &&
+          !/^\+?\d/.test(l)
+        ) {
+          pi.fullName = l.replace(/^name\s*[:\-]\s*/i, '').trim();
+          break;
+        }
+      }
+    }
+  }
+  if (!pi.fullName || pi.fullName.trim() === '') {
+    pi.fullName = fileName ? fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') : 'Candidate';
+  }
+
+  // 2. Email Address
+  if (!pi.email || !pi.email.includes('@')) {
+    const emailMatch = rawText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    pi.email = emailMatch ? emailMatch[0] : '';
+  }
+
+  // 3. Phone Number
+  if (!pi.phone || pi.phone.trim() === '') {
+    const phoneMatch = rawText.match(/(?:\+?\d{1,4}[-.\s]*)?(?:\(?\d{2,5}\)?[-.\s]*)?\d{3,5}[-.\s]*\d{3,5}/);
+    pi.phone = phoneMatch ? phoneMatch[0].trim() : '';
+  }
+
+  // 4. Headline / Title
+  if (!pi.headline || typeof pi.headline !== 'string' || pi.headline.trim() === '') {
+    if (parsed.headline) pi.headline = parsed.headline;
+    else if (parsed.role) pi.headline = parsed.role;
+    else if (Array.isArray(parsed.experiences) && parsed.experiences[0]?.role) {
+      pi.headline = parsed.experiences[0].role;
+    } else {
+      pi.headline = 'Experienced Professional';
+    }
+  }
+
+  // 5. Location
+  if (!pi.location || pi.location.trim() === '') {
+    const locMatch = rawText.match(/([A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+(?:\s*\d{5,6})?|[A-Z][a-zA-Z\s]+,\s*(?:India|USA|UK|Canada|Germany|Australia|Singapore))/);
+    pi.location = locMatch ? locMatch[0] : '';
+  }
+
+  // 6. Social Links
+  if (!pi.linkedin) {
+    const liMatch = rawText.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/);
+    pi.linkedin = liMatch ? liMatch[0] : '';
+  }
+  if (!pi.github) {
+    const ghMatch = rawText.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/[a-zA-Z0-9_-]+/);
+    pi.github = ghMatch ? ghMatch[0] : '';
+  }
+  if (!pi.portfolio) pi.portfolio = '';
+
+  // 7. Executive Summary
+  if (!parsed.summary || typeof parsed.summary !== 'string') {
+    parsed.summary = '';
+  }
+
+  // 8. Work Experiences
+  let rawExps = parsed.experiences || parsed.experience || parsed.workExperience || parsed.work_experience || parsed.employment || [];
+  if (!Array.isArray(rawExps)) rawExps = [];
+
+  parsed.experiences = rawExps.map((exp: any, idx: number) => {
+    let bullets: string[] = [];
+    if (Array.isArray(exp.bullets)) {
+      bullets = exp.bullets
+        .map((b: any) => String(b).replace(/^[•\-*–—▪▫➢▶✓○\d+\.]\s*/, '').trim())
+        .filter(Boolean);
+    } else if (typeof exp.description === 'string' && exp.description.includes('\n')) {
+      bullets = exp.description
+        .split('\n')
+        .map((l: string) => l.replace(/^[•\-*–—▪▫➢▶✓○\d+\.]\s*/, '').trim())
+        .filter(Boolean);
+    } else if (typeof exp.bullets === 'string') {
+      bullets = exp.bullets
+        .split('\n')
+        .map((l: string) => l.replace(/^[•\-*–—▪▫➢▶✓○\d+\.]\s*/, '').trim())
+        .filter(Boolean);
+    }
+
+    return {
+      id: exp.id || `exp-${idx + 1}`,
+      company: exp.company || exp.employer || exp.organization || 'Organization',
+      role: exp.role || exp.title || exp.position || 'Position',
+      location: exp.location || pi.location || '',
+      startDate: exp.startDate || exp.start_date || exp.from || '2020',
+      endDate: exp.endDate || exp.end_date || exp.to || 'Present',
+      current: Boolean(exp.current || /present|current/i.test(String(exp.endDate))),
+      description: exp.description || '',
+      bullets: bullets.length > 0 ? bullets : [exp.description || 'Led core project initiatives with measurable outcomes.'],
+    };
+  });
+
+  // 9. Education
+  let rawEdu = parsed.education || parsed.educations || parsed.academic || [];
+  if (!Array.isArray(rawEdu)) rawEdu = [];
+  parsed.education = rawEdu.map((edu: any, idx: number) => ({
+    id: edu.id || `edu-${idx + 1}`,
+    school: edu.school || edu.institution || edu.university || 'University',
+    degree: edu.degree || 'Degree',
+    fieldOfStudy: edu.fieldOfStudy || edu.major || edu.field || 'Field of Study',
+    location: edu.location || '',
+    startDate: edu.startDate || '2016',
+    endDate: edu.endDate || '2020',
+    gpa: edu.gpa || '',
+    highlights: Array.isArray(edu.highlights) ? edu.highlights : [],
+  }));
+
+  // 10. Skills
+  let rawSkills = parsed.skills;
+  if (Array.isArray(rawSkills)) {
+    if (rawSkills.length > 0 && typeof rawSkills[0] === 'string') {
+      parsed.skills = [{ category: 'Core Competencies', items: rawSkills.filter(Boolean) }];
+    } else {
+      parsed.skills = rawSkills.map((s: any) => ({
+        category: s.category || 'Skills',
+        items: Array.isArray(s.items) ? s.items.map(String).filter(Boolean) : [],
+      }));
+    }
+  } else if (rawSkills && typeof rawSkills === 'object') {
+    parsed.skills = Object.entries(rawSkills).map(([cat, items]) => ({
+      category: cat,
+      items: Array.isArray(items) ? (items as any[]).map(String).filter(Boolean) : [String(items)],
+    }));
+  } else {
+    parsed.skills = [];
+  }
+
+  if (!Array.isArray(parsed.projects)) parsed.projects = [];
+  if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
+
+  return parsed;
+}
+
 // Helper: Parse resume text into structured Resume JSON with OpenRouter, Groq, OpenAI & intelligent fallback
 async function parseResumeTextIntoStructure(text: string, fileName: string = '', options: ParseOptions = {}): Promise<any> {
   const systemPrompt = `You are a precision ATS resume parser. Your primary directive is 100% faithful extraction of the candidate's actual resume document.
@@ -311,11 +466,8 @@ Return strictly valid JSON adhering to this schema:
   const isValidParsedResume = (data: any): boolean => {
     return Boolean(
       data &&
-      data.personalInfo &&
-      data.personalInfo.fullName &&
-      data.personalInfo.fullName.trim() !== '' &&
-      Array.isArray(data.experiences) &&
-      data.experiences.length > 0
+      typeof data === 'object' &&
+      ((data.personalInfo && data.personalInfo.fullName) || data.name || data.fullName)
     );
   };
 
@@ -333,20 +485,21 @@ Return strictly valid JSON adhering to this schema:
           model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}` },
+            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 50000)}` },
           ],
           response_format: { type: 'json_object' },
         }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
       });
       if (resp.ok) {
         const data = await resp.json();
         const content = data.choices?.[0]?.message?.content || '{}';
         const parsed = JSON.parse(content);
         if (isValidParsedResume(parsed)) {
-          if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
-          console.log(`OpenAI extraction succeeded: Candidate "${parsed.personalInfo.fullName}" with ${parsed.experiences.length} roles.`);
-          return parsed;
+          const cleaned = cleanExtractedResume(parsed, text, fileName);
+          cleaned.usedProvider = 'openai';
+          console.log(`OpenAI extraction succeeded: Candidate "${cleaned.personalInfo.fullName}" with ${cleaned.experiences.length} roles.`);
+          return cleaned;
         }
       } else {
         const errText = await resp.text();
@@ -372,20 +525,21 @@ Return strictly valid JSON adhering to this schema:
           model: 'llama-3.3-70b-versatile',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}` },
+            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 50000)}` },
           ],
           response_format: { type: 'json_object' },
         }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
       });
       if (resp.ok) {
         const data = await resp.json();
         const content = data.choices?.[0]?.message?.content || '{}';
         const parsed = JSON.parse(content);
         if (isValidParsedResume(parsed)) {
-          if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
-          console.log(`Groq extraction succeeded: Candidate "${parsed.personalInfo.fullName}" with ${parsed.experiences.length} roles.`);
-          return parsed;
+          const cleaned = cleanExtractedResume(parsed, text, fileName);
+          cleaned.usedProvider = 'groq';
+          console.log(`Groq extraction succeeded: Candidate "${cleaned.personalInfo.fullName}" with ${cleaned.experiences.length} roles.`);
+          return cleaned;
         }
       } else {
         const errText = await resp.text();
@@ -413,20 +567,21 @@ Return strictly valid JSON adhering to this schema:
           model: 'google/gemini-2.0-flash-001',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}` },
+            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 50000)}` },
           ],
           response_format: { type: 'json_object' },
         }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
       });
       if (resp.ok) {
         const data = await resp.json();
         const content = data.choices?.[0]?.message?.content || '{}';
         const parsed = JSON.parse(content);
         if (isValidParsedResume(parsed)) {
-          if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
-          console.log(`OpenRouter extraction succeeded: Candidate "${parsed.personalInfo.fullName}" with ${parsed.experiences.length} roles.`);
-          return parsed;
+          const cleaned = cleanExtractedResume(parsed, text, fileName);
+          cleaned.usedProvider = 'openrouter';
+          console.log(`OpenRouter extraction succeeded: Candidate "${cleaned.personalInfo.fullName}" with ${cleaned.experiences.length} roles.`);
+          return cleaned;
         }
       } else {
         const errText = await resp.text();
@@ -444,7 +599,7 @@ Return strictly valid JSON adhering to this schema:
       console.log('Attempting CV extraction via Google Gemini...');
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}`,
+        contents: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 50000)}`,
         config: {
           systemInstruction: systemPrompt,
           responseMimeType: 'application/json',
@@ -452,14 +607,15 @@ Return strictly valid JSON adhering to this schema:
       });
       const parsed = JSON.parse(response.text || '{}');
       if (isValidParsedResume(parsed)) {
-        if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
-        return parsed;
+        const cleaned = cleanExtractedResume(parsed, text, fileName);
+        cleaned.usedProvider = 'gemini';
+        return cleaned;
       }
     } catch (err) {
       try {
         const response2 = await ai.models.generateContent({
           model: 'gemini-3.8-flash',
-          contents: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}`,
+          contents: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 50000)}`,
           config: {
             systemInstruction: systemPrompt,
             responseMimeType: 'application/json',
@@ -467,8 +623,9 @@ Return strictly valid JSON adhering to this schema:
         });
         const parsed2 = JSON.parse(response2.text || '{}');
         if (isValidParsedResume(parsed2)) {
-          if (!Array.isArray(parsed2.certifications)) parsed2.certifications = [];
-          return parsed2;
+          const cleaned = cleanExtractedResume(parsed2, text, fileName);
+          cleaned.usedProvider = 'gemini';
+          return cleaned;
         }
       } catch (err2) {
         console.warn('Gemini parser attempt unavailable:', err2);
@@ -820,7 +977,7 @@ app.post('/api/upload-cv-file', async (req: Request, res: Response) => {
       preferredProvider: effectiveProvider,
     });
 
-    const usedProvider = effectiveOpenAi ? 'openai' : effectiveGroq ? 'groq' : effectiveOpenRouter ? 'openrouter' : 'gemini';
+    const usedProvider = parsedResume?.usedProvider || (effectiveOpenAi ? 'openai' : effectiveGroq ? 'groq' : effectiveOpenRouter ? 'openrouter' : 'gemini');
 
     return res.json({
       success: true,

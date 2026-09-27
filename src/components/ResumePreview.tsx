@@ -81,6 +81,7 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
   const [showMarginGuides, setShowMarginGuides] = useState<boolean>(false);
   const [highlightKeywords, setHighlightKeywords] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showLayoutStyles, setShowLayoutStyles] = useState<boolean>(true);
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
 
   // Close fullscreen with ESC key
@@ -156,33 +157,130 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center bg-slate-900/5">
-      {/* 1. Quick-Switch Template Navigation Strip */}
-      <div className="w-full bg-slate-900 border-b border-slate-800 px-3 py-2 no-print overflow-x-auto">
-        <div className="flex items-center gap-1.5 min-w-max">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1.5 flex items-center gap-1">
-            <Sliders className="w-3.5 h-3.5 text-blue-400" />
-            Template:
-          </span>
-          {TEMPLATE_OPTIONS.map((tmpl) => {
-            const isSelected = tmpl.id === templateId;
-            return (
-              <button
-                key={tmpl.id}
-                onClick={() => onSelectTemplate && onSelectTemplate(tmpl.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border ${
-                  isSelected
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-sm'
-                    : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700/80 border-slate-700/60'
-                }`}
-                title={tmpl.desc}
-              >
-                <span>{tmpl.icon}</span>
-                <span>{tmpl.name}</span>
-                {isSelected && <Check className="w-3 h-3 text-blue-200" />}
-              </button>
-            );
-          })}
+      {/* 1. RIGHT PANEL: Comprehensive Layout Styles & Template Customizer */}
+      <div className="w-full bg-slate-900 border-b border-slate-800 text-white no-print">
+        {/* Header toggle bar */}
+        <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/60">
+          <div className="flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-indigo-400" />
+            <h3 className="font-bold text-xs text-white">
+              Layout Styles &amp; Templates (6 Single-Column Standards)
+            </h3>
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border"
+              style={{
+                backgroundColor: `${activeTemplate.color}20`,
+                borderColor: `${activeTemplate.color}40`,
+                color: activeTemplate.color,
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeTemplate.color }} />
+              <span>Active: {activeTemplate.name}</span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowLayoutStyles(!showLayoutStyles)}
+            className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition cursor-pointer flex items-center gap-1 font-medium"
+          >
+            <span>{showLayoutStyles ? 'Hide Layout Styles ▲' : 'Show Layout Styles ▼'}</span>
+          </button>
         </div>
+
+        {/* Collapsible Rich Layout Styles Content */}
+        {showLayoutStyles && (
+          <div className="p-3 sm:p-4 space-y-3 bg-slate-900">
+            {/* 6 Template Cards Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {TEMPLATE_OPTIONS.map((tmpl) => {
+                const isSelected = tmpl.id === templateId;
+                return (
+                  <button
+                    key={tmpl.id}
+                    type="button"
+                    onClick={() => onSelectTemplate && onSelectTemplate(tmpl.id)}
+                    className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer ${
+                      isSelected
+                        ? 'border-indigo-500 bg-indigo-500/15 shadow-sm ring-1 ring-indigo-500/30'
+                        : 'border-slate-800 hover:border-slate-700 bg-slate-950/70 hover:bg-slate-950'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-base">{tmpl.icon}</span>
+                        <span
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: tmpl.color }}
+                        />
+                      </div>
+                      <h4 className="font-bold text-xs text-white line-clamp-1">{tmpl.name}</h4>
+                      <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{tmpl.desc}</p>
+                    </div>
+
+                    <div className="mt-2 pt-1.5 border-t border-slate-800 flex items-center justify-between text-[10px]">
+                      <span className="text-emerald-400 font-semibold bg-emerald-500/10 px-1 py-0.2 rounded">
+                        99% ATS
+                      </span>
+                      {isSelected ? (
+                        <span className="text-indigo-300 font-bold flex items-center gap-0.5">
+                          <Check className="w-3 h-3" /> Active
+                        </span>
+                      ) : (
+                        <span className="text-slate-500">Select</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Styling Toolbar: Colors, Density, Guidelines */}
+            <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              {/* Palette */}
+              {onChangeAccentColor && (
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 font-medium text-[11px]">Color Palette:</span>
+                  <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800">
+                    {ACCENT_PALETTE.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() => onChangeAccentColor(color.value)}
+                        style={{ backgroundColor: color.value }}
+                        className={`w-4 h-4 rounded-full transition cursor-pointer ${
+                          accentColor === color.value
+                            ? 'ring-2 ring-white ring-offset-1 ring-offset-slate-900 scale-120'
+                            : 'opacity-80 hover:opacity-100 hover:scale-110'
+                        }`}
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Text Density */}
+              {onChangeFontSize && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-400 font-medium text-[11px]">Density:</span>
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-0.5 flex gap-0.5 text-[11px]">
+                    {(['compact', 'standard', 'relaxed'] as const).map((sz) => (
+                      <button
+                        key={sz}
+                        onClick={() => onChangeFontSize(sz)}
+                        className={`px-2.5 py-0.5 rounded font-medium capitalize transition cursor-pointer ${
+                          fontSize === sz ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Interactive Document Toolbar */}
