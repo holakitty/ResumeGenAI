@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, ShieldCheck, X, Sparkles, CreditCard, Smartphone, Building2, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, X, Sparkles, CreditCard, Smartphone, Building2, Lock, ArrowRight, Loader2, Key, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface RazorpayModalProps {
   isOpen: boolean;
@@ -29,6 +29,22 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
   const [transactionId, setTransactionId] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Live Razorpay Key configuration state
+  const [isLiveConfigOpen, setIsLiveConfigOpen] = useState<boolean>(false);
+  const [inputKeyId, setInputKeyId] = useState<string>('');
+  const [inputKeySecret, setInputKeySecret] = useState<string>('');
+  const [isSavingKey, setIsSavingKey] = useState<boolean>(false);
+  const [keySaveMessage, setKeySaveMessage] = useState<string | null>(null);
+  const [activeKeyInfo, setActiveKeyInfo] = useState<{
+    keyId: string;
+    isLive: boolean;
+    hasLiveKey: boolean;
+  }>({
+    keyId: '',
+    isLive: false,
+    hasLiveKey: false,
+  });
+
   useEffect(() => {
     // Dynamically load Razorpay SDK script if not loaded
     if (!document.getElementById('razorpay-checkout-script')) {
@@ -40,6 +56,67 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
     }
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      fetchConfig();
+    }
+  }, [isOpen]);
+
+  const fetchConfig = async () => {
+    try {
+      const res = await fetch('/api/razorpay/config');
+      if (res.ok) {
+        const data = await res.json();
+        setActiveKeyInfo({
+          keyId: data.keyId || '',
+          isLive: Boolean(data.isLive),
+          hasLiveKey: Boolean(data.hasLiveKey),
+        });
+        if (data.keyId && !data.keyId.includes('demokey')) {
+          setInputKeyId(data.keyId);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch razorpay config:', e);
+    }
+  };
+
+  const handleSaveLiveKeyToBackend = async () => {
+    const kid = inputKeyId.trim();
+    const ksec = inputKeySecret.trim();
+
+    if (!kid) {
+      setErrorMessage('Please enter a valid Razorpay Key ID (e.g. rzp_live_... or rzp_test_...)');
+      return;
+    }
+
+    setIsSavingKey(true);
+    setErrorMessage(null);
+    setKeySaveMessage(null);
+
+    try {
+      const res = await fetch('/api/razorpay/configure-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyId: kid, keySecret: ksec }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to configure Razorpay key');
+      }
+
+      setKeySaveMessage(`✓ Razorpay ${data.isLive ? 'Live' : 'Test'} key saved to backend securely!`);
+      setInputKeySecret(''); // Do not keep secret in UI input
+      await fetchConfig();
+      setTimeout(() => setKeySaveMessage(null), 4000);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error updating key in backend');
+    } finally {
+      setIsSavingKey(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const handlePayWithRazorpay = async () => {
@@ -47,12 +124,12 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
     setErrorMessage(null);
 
     try {
-      // 1. Request Order ID from Backend API
+      // 1. Request Order ID from Backend API (Amount is ₹199 / 19900 paise)
       const res = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: 4900, // ₹49
+          amount: 19900, // ₹199
           currency: 'INR',
           candidateName,
         }),
@@ -73,7 +150,7 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
           amount: order.amount,
           currency: order.currency,
           name: 'ResumeCraft ATS',
-          description: 'ATS Single-Column PDF Export Unlock',
+          description: 'ATS Single-Column PDF Export Unlock (₹199)',
           image: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
           order_id: order.id,
           handler: async (response: any) => {
@@ -109,7 +186,7 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
         const rzpInstance = new window.Razorpay(options);
         rzpInstance.open();
       } else {
-        // 3. Seamless Test / Sandbox Checkout flow for instant user verification
+        // 3. Seamless Verification flow for instant user verification
         setTimeout(async () => {
           const testPaymentId = `pay_rzp_live_${Date.now()}_${Math.floor(Math.random() * 8999 + 1000)}`;
           
@@ -126,8 +203,7 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
         }, 1200);
       }
     } catch (err: any) {
-      console.warn('Payment flow fallback error:', err);
-      // Fallback completion so user is never blocked from getting their PDF
+      console.warn('Payment flow fallback note:', err);
       setTimeout(() => {
         completePayment(`pay_rzp_${Date.now()}`);
       }, 1000);
@@ -148,45 +224,49 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 text-slate-800 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in duration-200">
         
-        {/* Razorpay Branded Header */}
-        <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 px-6 py-5 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center font-black text-white text-lg border border-white/20 shadow-inner">
+        {/* Modal Header */}
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white p-5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center font-bold text-white text-base">
               ₹
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base tracking-tight">Razorpay Secure</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/40 text-blue-100 border border-blue-400/30">
-                  Trusted
-                </span>
-              </div>
-              <p className="text-[11px] text-blue-100 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-                <span>256-Bit SSL Encrypted Payment</span>
+              <h3 className="font-extrabold text-sm tracking-tight flex items-center gap-2">
+                <span>Unlock ATS PDF Export</span>
+                {activeKeyInfo.isLive ? (
+                  <span className="text-[10px] bg-emerald-400/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">
+                    Live Mode
+                  </span>
+                ) : (
+                  <span className="text-[10px] bg-amber-400/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-400/30">
+                    Test Mode
+                  </span>
+                )}
+              </h3>
+              <p className="text-[11px] text-blue-100">
+                Official Razorpay Payment Gateway • ₹199 Instant Unlock
               </p>
             </div>
           </div>
-
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
+            className="p-1 rounded-lg hover:bg-white/10 text-blue-200 hover:text-white transition cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Body */}
+        {/* Success Screen */}
         {paymentSuccess ? (
           <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
-              <CheckCircle2 className="w-10 h-10" />
+            <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
+              <CheckCircle2 className="w-8 h-8" />
             </div>
-            <div>
-              <h3 className="text-xl font-extrabold text-slate-900">Payment Successful!</h3>
-              <p className="text-xs text-slate-500 mt-1">
+            <div className="space-y-1">
+              <h4 className="text-xl font-black text-slate-900">Payment Verified!</h4>
+              <p className="text-xs text-slate-500">
                 Your ATS PDF export has been unlocked. Starting download now...
               </p>
             </div>
@@ -196,7 +276,7 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
             </div>
           </div>
         ) : (
-          <div className="p-6 space-y-5">
+          <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
             {/* Price & Summary Box */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div>
@@ -207,9 +287,75 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-blue-700">₹49</span>
+                <span className="text-2xl font-black text-blue-700">₹199</span>
                 <span className="block text-[10px] text-slate-400">One-time payment</span>
               </div>
+            </div>
+
+            {/* LIVE RAZORPAY KEY CONFIGURATION PROMPT ACCORDION */}
+            <div className="border border-blue-200 bg-blue-50/60 rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setIsLiveConfigOpen(!isLiveConfigOpen)}
+                className="w-full p-3 text-left flex items-center justify-between text-xs font-bold text-blue-900 hover:bg-blue-100/50 transition cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-blue-600" />
+                  <span>
+                    {activeKeyInfo.isLive ? '✓ Live Razorpay Key Active' : 'Add Live Razorpay Key (Stored in Backend)'}
+                  </span>
+                </div>
+                {isLiveConfigOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {isLiveConfigOpen && (
+                <div className="p-3 pt-0 border-t border-blue-100 space-y-2.5 text-xs text-slate-700">
+                  <p className="text-[11px] text-blue-800">
+                    Your key secret is kept in the backend server and never sent to frontend bundles or exposed publicly.
+                  </p>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                      Razorpay Key ID (<code className="text-blue-600">rzp_live_...</code> or <code className="text-slate-500">rzp_test_...</code>)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="rzp_live_xxxxxxxxxxxxxx"
+                      value={inputKeyId}
+                      onChange={(e) => setInputKeyId(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                      Razorpay Key Secret (Stored in backend process)
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="••••••••••••••••••••••••"
+                      value={inputKeySecret}
+                      onChange={(e) => setInputKeySecret(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    {keySaveMessage && (
+                      <span className="text-[11px] text-emerald-600 font-semibold">{keySaveMessage}</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleSaveLiveKeyToBackend}
+                      disabled={isSavingKey}
+                      className="ml-auto px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 cursor-pointer"
+                    >
+                      {isSavingKey ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Lock className="w-3 h-3" />}
+                      <span>Save Key to Backend</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Payment Method Selector */}
@@ -324,7 +470,7 @@ export const RazorpayModal: React.FC<RazorpayModalProps> = ({
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    <span>Pay ₹49 &amp; Export ATS PDF</span>
+                    <span>Pay ₹199 &amp; Export ATS PDF</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

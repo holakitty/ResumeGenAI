@@ -9,6 +9,7 @@ import { TemplateGalleryModal } from './components/TemplateGalleryModal';
 import { LandingPageSection } from './components/LandingPageSection';
 import { RazorpayModal } from './components/RazorpayModal';
 import { JobConnectorModal } from './components/JobConnectorModal';
+import { ApiKeysModal } from './components/ApiKeysModal';
 import {
   FileText,
   Sparkles,
@@ -26,6 +27,7 @@ import {
   ExternalLink,
   Zap,
   Globe,
+  Key,
 } from 'lucide-react';
 
 export default function App() {
@@ -39,6 +41,10 @@ export default function App() {
   // Modals & Gateway State
   const [isRazorpayModalOpen, setIsRazorpayModalOpen] = useState<boolean>(false);
   const [isJobConnectorModalOpen, setIsJobConnectorModalOpen] = useState<boolean>(false);
+  const [isApiKeysModalOpen, setIsApiKeysModalOpen] = useState<boolean>(false);
+  const [openRouterKey, setOpenRouterKey] = useState<string>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('rc_openrouter_key') || '' : '';
+  });
   const [isPdfUnlocked, setIsPdfUnlocked] = useState<boolean>(() => {
     return typeof window !== 'undefined' && sessionStorage.getItem('rc_ats_paid') === 'true';
   });
@@ -148,11 +154,15 @@ export default function App() {
 
       const response = await fetch('/api/upload-cv-file', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-openrouter-key': openRouterKey || '',
+        },
         body: JSON.stringify({
           fileName: file.name,
           mimeType: file.type,
           fileBase64,
+          openRouterApiKey: openRouterKey || undefined,
         }),
       });
 
@@ -463,6 +473,16 @@ export default function App() {
               className="hidden"
             />
             <button
+              onClick={() => setIsApiKeysModalOpen(true)}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center gap-1.5 transition cursor-pointer"
+              title="Configure OpenRouter key for extraction & Razorpay live key"
+            >
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">API &amp; Razorpay Keys</span>
+              <span className="sm:hidden">Keys</span>
+            </button>
+
+            <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingFile}
               className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition cursor-pointer"
@@ -473,7 +493,7 @@ export default function App() {
               ) : (
                 <Upload className="w-3.5 h-3.5" />
               )}
-              <span>{isUploadingFile ? 'Parsing CV...' : 'Upload CV (PDF/DOC)'}</span>
+              <span>{isUploadingFile ? 'Parsing CV...' : 'Upload CV'}</span>
             </button>
 
             <button
@@ -487,7 +507,7 @@ export default function App() {
             <button
               onClick={handleExportPdf}
               className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition cursor-pointer"
-              title="Export single-column ATS PDF via Razorpay"
+              title="Export single-column ATS PDF via Razorpay (₹199)"
             >
               {isPdfUnlocked ? (
                 <>
@@ -497,7 +517,7 @@ export default function App() {
               ) : (
                 <>
                   <Lock className="w-3.5 h-3.5 text-blue-200" />
-                  <span>Export PDF (₹49)</span>
+                  <span>Export PDF (₹199)</span>
                 </>
               )}
             </button>
@@ -515,13 +535,23 @@ export default function App() {
 
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
-        {/* VIEW 0: Landing Page & README Showcase */}
+        {/* VIEW 0: Landing Page & README Showcase with CV Upload & Live Generated CV Preview */}
         {activeTab === 'landing' && (
           <LandingPageSection
             onLaunchGenerator={() => setActiveTab('resume')}
             onSelectTemplate={handleSelectTemplate}
+            selectedTemplate={selectedTemplate}
+            accentColor={accentColor}
+            onChangeAccentColor={(color) => setAccentColor(color)}
+            resumeData={resumeData}
             onOpenRazorpayModal={() => setIsRazorpayModalOpen(true)}
+            onOpenApiKeysModal={() => setIsApiKeysModalOpen(true)}
             isPdfUnlocked={isPdfUnlocked}
+            onFileUpload={handleFileUpload}
+            isUploadingFile={isUploadingFile}
+            statusMessage={statusMessage}
+            openRouterKey={openRouterKey}
+            onExportTxt={handleExportTxt}
           />
         )}
 
@@ -985,6 +1015,13 @@ export default function App() {
           setActiveJob(job);
           setActiveTab('cover-letter');
         }}
+      />
+
+      {/* API & Payment Keys Modal (OpenRouter & Live Razorpay) */}
+      <ApiKeysModal
+        isOpen={isApiKeysModalOpen}
+        onClose={() => setIsApiKeysModalOpen(false)}
+        onOpenRouterKeySaved={(k) => setOpenRouterKey(k)}
       />
     </div>
   );

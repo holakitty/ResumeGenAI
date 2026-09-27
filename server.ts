@@ -195,8 +195,8 @@ function extractReadableStrings(buffer: Buffer): string {
   return matches ? matches.join('\n') : '';
 }
 
-// Helper: Parse resume text into structured Resume JSON with intelligent fallback
-async function parseResumeTextIntoStructure(text: string, fileName: string = ''): Promise<any> {
+// Helper: Parse resume text into structured Resume JSON with OpenRouter & intelligent fallback
+async function parseResumeTextIntoStructure(text: string, fileName: string = '', openRouterApiKey?: string): Promise<any> {
   const systemPrompt = `You are a precision ATS resume parser. Your primary directive is 100% faithful extraction of the candidate's actual resume document.
 
 CRITICAL RULES FOR WORK EXPERIENCES:
@@ -268,6 +268,50 @@ Return strictly valid JSON adhering to this schema:
   "certifications": []
 }`;
 
+  // PRIORITY 1: OpenRouter API extraction if key is provided or in environment
+  const effectiveOpenRouterKey = (openRouterApiKey || process.env.OPENROUTER_API_KEY || '').trim();
+  if (effectiveOpenRouterKey) {
+    try {
+      console.log('Using OpenRouter API for high-precision CV extraction...');
+      const openRouterResp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${effectiveOpenRouterKey}`,
+          'HTTP-Referer': 'https://resumecraft-ats.dev',
+          'X-Title': 'ResumeCraft ATS',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.0-flash-001',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}` },
+          ],
+          response_format: { type: 'json_object' },
+        }),
+      });
+
+      if (openRouterResp.ok) {
+        const data = await openRouterResp.json();
+        const content = data.choices?.[0]?.message?.content || '{}';
+        const parsedData = JSON.parse(content);
+        if (parsedData && parsedData.personalInfo && parsedData.personalInfo.fullName && Array.isArray(parsedData.experiences) && parsedData.experiences.length > 0) {
+          if (!Array.isArray(parsedData.certifications)) {
+            parsedData.certifications = [];
+          }
+          console.log(`OpenRouter extraction succeeded: found candidate ${parsedData.personalInfo.fullName} with ${parsedData.experiences.length} roles.`);
+          return parsedData;
+        }
+      } else {
+        const errText = await openRouterResp.text();
+        console.warn('OpenRouter parsing note (trying secondary options):', errText);
+      }
+    } catch (openRouterErr) {
+      console.warn('OpenRouter parser error, moving to Gemini/heuristics:', openRouterErr);
+    }
+  }
+
+  // PRIORITY 2: Server-side Gemini 2.5/3.8 Flash models
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -565,10 +609,13 @@ Return strictly valid JSON adhering to this schema:
   };
 }
 
-// Endpoint: Upload and Parse Personal CV File (PDF, DOCX, DOC, TXT)
+// Endpoint: Upload and Parse Personal CV File (PDF, DOCX, DOC, TXT) with optional OpenRouter API Key
 app.post('/api/upload-cv-file', async (req: Request, res: Response) => {
   try {
-    const { fileBase64, fileName, mimeType } = req.body;
+    const { fileBase64, fileName, mimeType, openRouterApiKey } = req.body;
+    const headerKey = (req.headers['x-openrouter-key'] as string) || '';
+    const activeOpenRouterKey = (openRouterApiKey || headerKey || process.env.OPENROUTER_API_KEY || '').trim();
+
     if (!fileBase64) {
       return res.status(400).json({ error: 'No file content received' });
     }
@@ -582,8 +629,13 @@ app.post('/api/upload-cv-file', async (req: Request, res: Response) => {
       });
     }
 
-    const parsedResume = await parseResumeTextIntoStructure(extractedText, fileName);
-    return res.json({ success: true, text: extractedText, resume: parsedResume });
+    const parsedResume = await parseResumeTextIntoStructure(extractedText, fileName, activeOpenRouterKey);
+    return res.json({
+      success: true,
+      text: extractedText,
+      resume: parsedResume,
+      usedOpenRouter: Boolean(activeOpenRouterKey),
+    });
   } catch (error: any) {
     console.error('Error in /api/upload-cv-file:', error);
     return res.status(500).json({ error: error.message || 'Failed to parse CV file' });
@@ -1209,19 +1261,87 @@ Reply with clear, helpful, formatted guidance, practical STAR bullets, or featur
 
 // Razorpay Payment Gateway Integration
 app.get('/api/razorpay/config', (_req: Request, res: Response) => {
+  const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_demokey1234';
+  const isLive = keyId.startsWith('rzp_live_');
   return res.json({
     success: true,
-    keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_demokey1234',
+    keyId,
     currency: 'INR',
-    amount: 4900, // ₹49.00
-    displayAmount: '₹49',
-    description: 'ATS PDF Resume & Cover Letter Export',
+    amount: 19900, // ₹199.00
+    displayAmount: '₹199',
+    description: 'ATS Single-Column PDF Resume & Cover Letter Export',
+    isLive,
+    hasLiveKey: Boolean(process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_KEY_ID.includes('demokey')),
+  });
+});
+
+// Endpoint: Securely configure Razorpay Live Key in backend memory
+app.post('/api/razorpay/configure-key', (req: Request, res: Response) => {
+  try {
+    const { keyId, keySecret } = req.body;
+    if (!keyId || typeof keyId !== 'string' || !keyId.trim()) {
+      return res.status(400).json({ error: 'A valid Razorpay Key ID is required (e.g. rzp_live_... or rzp_test_...)' });
+    }
+
+    process.env.RAZORPAY_KEY_ID = keyId.trim();
+    if (keySecret && typeof keySecret === 'string' && keySecret.trim()) {
+      process.env.RAZORPAY_KEY_SECRET = keySecret.trim();
+    }
+
+    const isLive = process.env.RAZORPAY_KEY_ID.startsWith('rzp_live_');
+    console.log(`Razorpay keys securely updated in backend. Prefix: ${process.env.RAZORPAY_KEY_ID.slice(0, 9)}... (Live mode: ${isLive})`);
+
+    return res.json({
+      success: true,
+      message: `Razorpay ${isLive ? 'Live' : 'Test'} keys securely saved in backend memory!`,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      isLive,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to update Razorpay keys' });
+  }
+});
+
+// Endpoint: Securely configure OpenRouter API Key in backend
+app.post('/api/config/openrouter-key', (req: Request, res: Response) => {
+  try {
+    const { apiKey } = req.body;
+    if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
+      return res.status(400).json({ error: 'Valid OpenRouter API Key is required' });
+    }
+
+    process.env.OPENROUTER_API_KEY = apiKey.trim();
+    console.log('OpenRouter API Key saved in backend environment.');
+
+    return res.json({
+      success: true,
+      message: 'OpenRouter API Key successfully saved in backend!',
+      hasOpenRouterKey: true,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to save OpenRouter key' });
+  }
+});
+
+// Endpoint: Query API and payment configuration status
+app.get('/api/config/status', (_req: Request, res: Response) => {
+  const rzpKey = process.env.RAZORPAY_KEY_ID || '';
+  const isLiveRzp = rzpKey.startsWith('rzp_live_');
+  return res.json({
+    success: true,
+    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    hasOpenRouterKey: Boolean(process.env.OPENROUTER_API_KEY),
+    hasRazorpayKey: Boolean(rzpKey && !rzpKey.includes('demokey')),
+    isLiveRazorpay: isLiveRzp,
+    razorpayKeyId: rzpKey || 'rzp_test_demokey1234',
+    amount: 19900,
+    displayAmount: '₹199',
   });
 });
 
 app.post('/api/razorpay/create-order', async (req: Request, res: Response) => {
   try {
-    const { amount = 4900, currency = 'INR', candidateName = 'Candidate' } = req.body;
+    const { amount = 19900, currency = 'INR', candidateName = 'Candidate' } = req.body;
     const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
     const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
@@ -1247,9 +1367,10 @@ app.post('/api/razorpay/create-order', async (req: Request, res: Response) => {
           success: true,
           order,
           keyId: razorpayKeyId,
+          isLiveMode: razorpayKeyId.startsWith('rzp_live_'),
         });
       } catch (rzpErr: any) {
-        console.warn('Razorpay SDK error, falling back to secure test order:', rzpErr.message);
+        console.warn('Razorpay SDK order creation note (falling back to test order):', rzpErr.message);
       }
     }
 

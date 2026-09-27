@@ -341,7 +341,7 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
           <button
             onClick={onExportPdf ? onExportPdf : () => window.print()}
             className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition cursor-pointer"
-            title={isPdfUnlocked ? 'Instant Print / PDF' : 'Unlock Single-Column PDF via Razorpay (₹49)'}
+            title={isPdfUnlocked ? 'Instant Print / PDF' : 'Unlock Single-Column PDF via Razorpay (₹199)'}
           >
             {isPdfUnlocked ? (
               <Unlock className="w-3 h-3 text-emerald-300" />
