@@ -98,13 +98,13 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
             Upload your existing CV directly below to generate an instant single-column ATS preview. Preserves authentic experiences for <strong className="text-white">Ranjana Guha</strong> (Statistical Analyst, ISI Kolkata) or your own uploaded document.
           </p>
 
-          {/* Primary Action Buttons */}
+          {/* Primary Action Buttons - ONE ABOVE */}
           <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={onLaunchGenerator}
               className="px-7 py-3.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 shadow-xl shadow-indigo-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>🚀 Launch Full Resume Editor</span>
+              <span>🚀 Launch Live App &amp; Generator</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -282,14 +282,6 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={onLaunchGenerator}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>🚀 Open Full Editor</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-
             <button
               onClick={onOpenRazorpayModal}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
@@ -477,7 +469,7 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
             onClick={onLaunchGenerator}
             className="px-6 py-3 rounded-xl bg-white text-indigo-900 font-black text-xs shadow-lg hover:bg-slate-100 transition transform hover:scale-105 shrink-0 flex items-center gap-2 cursor-pointer"
           >
-            <span>🚀 Launch Full Resume Editor</span>
+            <span>🚀 Launch Live App &amp; Generator</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
           <button
