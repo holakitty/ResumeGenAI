@@ -45,6 +45,15 @@ export default function App() {
   const [openRouterKey, setOpenRouterKey] = useState<string>(() => {
     return typeof window !== 'undefined' ? localStorage.getItem('rc_openrouter_key') || '' : '';
   });
+  const [groqKey, setGroqKey] = useState<string>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('rc_groq_key') || '' : '';
+  });
+  const [openAiKey, setOpenAiKey] = useState<string>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('rc_openai_key') || '' : '';
+  });
+  const [preferredProvider, setPreferredProvider] = useState<string>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('rc_preferred_provider') || 'auto' : 'auto';
+  });
   const [isPdfUnlocked, setIsPdfUnlocked] = useState<boolean>(() => {
     return typeof window !== 'undefined' && sessionStorage.getItem('rc_ats_paid') === 'true';
   });
@@ -157,12 +166,18 @@ export default function App() {
         headers: {
           'Content-Type': 'application/json',
           'x-openrouter-key': openRouterKey || '',
+          'x-groq-key': groqKey || '',
+          'x-openai-key': openAiKey || '',
+          'x-provider': preferredProvider || '',
         },
         body: JSON.stringify({
           fileName: file.name,
           mimeType: file.type,
           fileBase64,
           openRouterApiKey: openRouterKey || undefined,
+          groqApiKey: groqKey || undefined,
+          openAiApiKey: openAiKey || undefined,
+          preferredProvider: preferredProvider || undefined,
         }),
       });
 
@@ -172,7 +187,8 @@ export default function App() {
       }
 
       setResumeData(data.resume);
-      setStatusMessage(`Successfully extracted & structured CV from ${file.name}!`);
+      const engineName = data.usedProvider ? data.usedProvider.toUpperCase() : 'AI';
+      setStatusMessage(`Successfully extracted & structured CV from ${file.name} (via ${engineName})!`);
       setTimeout(() => setStatusMessage(null), 5000);
     } catch (err: any) {
       console.warn('File upload fallback parser:', err);
@@ -551,6 +567,9 @@ export default function App() {
             isUploadingFile={isUploadingFile}
             statusMessage={statusMessage}
             openRouterKey={openRouterKey}
+            groqKey={groqKey}
+            openAiKey={openAiKey}
+            preferredProvider={preferredProvider}
             onExportTxt={handleExportTxt}
           />
         )}
@@ -1017,11 +1036,16 @@ export default function App() {
         }}
       />
 
-      {/* API & Payment Keys Modal (OpenRouter & Live Razorpay) */}
+      {/* API & Payment Keys Modal (OpenRouter, Groq, OpenAI & Live Razorpay) */}
       <ApiKeysModal
         isOpen={isApiKeysModalOpen}
         onClose={() => setIsApiKeysModalOpen(false)}
-        onOpenRouterKeySaved={(k) => setOpenRouterKey(k)}
+        onKeysSaved={(keys) => {
+          setOpenRouterKey(keys.openRouterKey);
+          setGroqKey(keys.groqKey);
+          setOpenAiKey(keys.openAiKey);
+          setPreferredProvider(keys.preferredProvider);
+        }}
       />
     </div>
   );

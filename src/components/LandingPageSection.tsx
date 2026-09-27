@@ -40,6 +40,9 @@ interface LandingPageSectionProps {
   isUploadingFile: boolean;
   statusMessage: string | null;
   openRouterKey?: string;
+  groqKey?: string;
+  openAiKey?: string;
+  preferredProvider?: string;
   onExportTxt?: () => void;
 }
 
@@ -57,6 +60,9 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
   isUploadingFile,
   statusMessage,
   openRouterKey,
+  groqKey,
+  openAiKey,
+  preferredProvider,
   onExportTxt,
 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -176,22 +182,28 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
             </div>
           </div>
 
-          {/* OpenRouter Extraction Status Indicator */}
+          {/* AI Extraction Engine Status Indicator */}
           <div className="flex items-center gap-2">
-            {openRouterKey ? (
+            {openAiKey || groqKey || openRouterKey ? (
               <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-medium">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>OpenRouter 100% Extraction Active</span>
+                <span>
+                  {openAiKey
+                    ? 'OpenAI (GPT-4o-mini) Active'
+                    : groqKey
+                    ? 'Groq (LLaMA 3.3) Active'
+                    : 'OpenRouter Active'}
+                </span>
               </span>
             ) : (
               <button
                 type="button"
                 onClick={onOpenApiKeysModal}
                 className="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition cursor-pointer"
-                title="Add OpenRouter API key for high-precision extraction"
+                title="Configure OpenRouter, Groq, or OpenAI API key for 100% extraction accuracy"
               >
                 <Key className="w-3.5 h-3.5 text-amber-400" />
-                <span>Add OpenRouter Key for Extraction</span>
+                <span>Add API Key (OpenRouter / Groq / OpenAI)</span>
               </button>
             )}
           </div>

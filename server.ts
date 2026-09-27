@@ -82,6 +82,33 @@ async function callAIModel({
     return data.choices?.[0]?.message?.content || '';
   }
 
+  if (chosenProvider === 'openai') {
+    const key = customKey || process.env.OPENAI_API_KEY;
+    if (!key) throw new Error('OpenAI API key is missing. Please provide it in the API settings or .env');
+    const targetModel = model || 'gpt-4o-mini';
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: targetModel,
+        messages: [
+          ...(systemInstruction ? [{ role: 'system', content: systemInstruction }] : []),
+          { role: 'user', content: prompt }
+        ],
+        ...(responseJson ? { response_format: { type: 'json_object' } } : {})
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`OpenAI error: ${err}`);
+    }
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
   if (chosenProvider === 'groq') {
     const key = customKey || process.env.GROQ_API_KEY;
     if (!key) throw new Error('Groq API key is missing. Please provide it in the API settings or .env');
@@ -195,8 +222,15 @@ function extractReadableStrings(buffer: Buffer): string {
   return matches ? matches.join('\n') : '';
 }
 
-// Helper: Parse resume text into structured Resume JSON with OpenRouter & intelligent fallback
-async function parseResumeTextIntoStructure(text: string, fileName: string = '', openRouterApiKey?: string): Promise<any> {
+interface ParseOptions {
+  openRouterApiKey?: string;
+  groqApiKey?: string;
+  openAiApiKey?: string;
+  preferredProvider?: string;
+}
+
+// Helper: Parse resume text into structured Resume JSON with OpenRouter, Groq, OpenAI & intelligent fallback
+async function parseResumeTextIntoStructure(text: string, fileName: string = '', options: ParseOptions = {}): Promise<any> {
   const systemPrompt = `You are a precision ATS resume parser. Your primary directive is 100% faithful extraction of the candidate's actual resume document.
 
 CRITICAL RULES FOR WORK EXPERIENCES:
@@ -268,16 +302,110 @@ Return strictly valid JSON adhering to this schema:
   "certifications": []
 }`;
 
-  // PRIORITY 1: OpenRouter API extraction if key is provided or in environment
-  const effectiveOpenRouterKey = (openRouterApiKey || process.env.OPENROUTER_API_KEY || '').trim();
-  if (effectiveOpenRouterKey) {
+  const openRouterKey = (options.openRouterApiKey || process.env.OPENROUTER_API_KEY || '').trim();
+  const groqKey = (options.groqApiKey || process.env.GROQ_API_KEY || '').trim();
+  const openAiKey = (options.openAiApiKey || process.env.OPENAI_API_KEY || '').trim();
+  const preferred = (options.preferredProvider || '').toLowerCase();
+
+  // Helper validator for parsed candidate JSON
+  const isValidParsedResume = (data: any): boolean => {
+    return Boolean(
+      data &&
+      data.personalInfo &&
+      data.personalInfo.fullName &&
+      data.personalInfo.fullName.trim() !== '' &&
+      Array.isArray(data.experiences) &&
+      data.experiences.length > 0
+    );
+  };
+
+  // Provider 1: OpenAI
+  const tryOpenAI = async (key: string): Promise<any | null> => {
     try {
-      console.log('Using OpenRouter API for high-precision CV extraction...');
-      const openRouterResp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      console.log('Attempting CV extraction via OpenAI (gpt-4o-mini)...');
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${effectiveOpenRouterKey}`,
+          'Authorization': `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}` },
+          ],
+          response_format: { type: 'json_object' },
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const content = data.choices?.[0]?.message?.content || '{}';
+        const parsed = JSON.parse(content);
+        if (isValidParsedResume(parsed)) {
+          if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
+          console.log(`OpenAI extraction succeeded: Candidate "${parsed.personalInfo.fullName}" with ${parsed.experiences.length} roles.`);
+          return parsed;
+        }
+      } else {
+        const errText = await resp.text();
+        console.warn('OpenAI parser response note:', errText);
+      }
+    } catch (e) {
+      console.warn('OpenAI parser error:', e);
+    }
+    return null;
+  };
+
+  // Provider 2: Groq
+  const tryGroq = async (key: string): Promise<any | null> => {
+    try {
+      console.log('Attempting CV extraction via Groq (llama-3.3-70b-versatile)...');
+      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}` },
+          ],
+          response_format: { type: 'json_object' },
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const content = data.choices?.[0]?.message?.content || '{}';
+        const parsed = JSON.parse(content);
+        if (isValidParsedResume(parsed)) {
+          if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
+          console.log(`Groq extraction succeeded: Candidate "${parsed.personalInfo.fullName}" with ${parsed.experiences.length} roles.`);
+          return parsed;
+        }
+      } else {
+        const errText = await resp.text();
+        console.warn('Groq parser response note:', errText);
+      }
+    } catch (e) {
+      console.warn('Groq parser error:', e);
+    }
+    return null;
+  };
+
+  // Provider 3: OpenRouter
+  const tryOpenRouter = async (key: string): Promise<any | null> => {
+    try {
+      console.log('Attempting CV extraction via OpenRouter...');
+      const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`,
           'HTTP-Referer': 'https://resumecraft-ats.dev',
           'X-Title': 'ResumeCraft ATS',
         },
@@ -289,92 +417,135 @@ Return strictly valid JSON adhering to this schema:
           ],
           response_format: { type: 'json_object' },
         }),
+        signal: AbortSignal.timeout(8000),
       });
-
-      if (openRouterResp.ok) {
-        const data = await openRouterResp.json();
+      if (resp.ok) {
+        const data = await resp.json();
         const content = data.choices?.[0]?.message?.content || '{}';
-        const parsedData = JSON.parse(content);
-        if (parsedData && parsedData.personalInfo && parsedData.personalInfo.fullName && Array.isArray(parsedData.experiences) && parsedData.experiences.length > 0) {
-          if (!Array.isArray(parsedData.certifications)) {
-            parsedData.certifications = [];
-          }
-          console.log(`OpenRouter extraction succeeded: found candidate ${parsedData.personalInfo.fullName} with ${parsedData.experiences.length} roles.`);
-          return parsedData;
+        const parsed = JSON.parse(content);
+        if (isValidParsedResume(parsed)) {
+          if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
+          console.log(`OpenRouter extraction succeeded: Candidate "${parsed.personalInfo.fullName}" with ${parsed.experiences.length} roles.`);
+          return parsed;
         }
       } else {
-        const errText = await openRouterResp.text();
-        console.warn('OpenRouter parsing note (trying secondary options):', errText);
+        const errText = await resp.text();
+        console.warn('OpenRouter response note:', errText);
       }
-    } catch (openRouterErr) {
-      console.warn('OpenRouter parser error, moving to Gemini/heuristics:', openRouterErr);
+    } catch (e) {
+      console.warn('OpenRouter parser error:', e);
     }
-  }
+    return null;
+  };
 
-  // PRIORITY 2: Server-side Gemini 2.5/3.8 Flash models
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}`,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const parsedData = JSON.parse(response.text || '{}');
-    if (parsedData && parsedData.personalInfo && parsedData.personalInfo.fullName && Array.isArray(parsedData.experiences) && parsedData.experiences.length > 0) {
-      if (!Array.isArray(parsedData.certifications)) {
-        parsedData.certifications = [];
-      }
-      return parsedData;
-    }
-  } catch (err) {
-    console.warn('Gemini 2.5 parser note, trying fallback model or dynamic section extractor:', err);
+  // Provider 4: Google Gemini
+  const tryGemini = async (): Promise<any | null> => {
     try {
-      const response2 = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+      console.log('Attempting CV extraction via Google Gemini...');
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
         contents: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}`,
         config: {
           systemInstruction: systemPrompt,
           responseMimeType: 'application/json',
         },
       });
-      const parsedData2 = JSON.parse(response2.text || '{}');
-      if (parsedData2 && parsedData2.personalInfo && parsedData2.personalInfo.fullName && Array.isArray(parsedData2.experiences) && parsedData2.experiences.length > 0) {
-        if (!Array.isArray(parsedData2.certifications)) {
-          parsedData2.certifications = [];
-        }
-        return parsedData2;
+      const parsed = JSON.parse(response.text || '{}');
+      if (isValidParsedResume(parsed)) {
+        if (!Array.isArray(parsed.certifications)) parsed.certifications = [];
+        return parsed;
       }
-    } catch (err2) {
-      console.warn('Secondary Gemini attempt also unavailable, falling back to dynamic regex text parser:', err2);
+    } catch (err) {
+      try {
+        const response2 = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: `Parse the following uploaded resume text into structured JSON with zero hallucinations and accurate work experiences:\n\n${text.slice(0, 18000)}`,
+          config: {
+            systemInstruction: systemPrompt,
+            responseMimeType: 'application/json',
+          },
+        });
+        const parsed2 = JSON.parse(response2.text || '{}');
+        if (isValidParsedResume(parsed2)) {
+          if (!Array.isArray(parsed2.certifications)) parsed2.certifications = [];
+          return parsed2;
+        }
+      } catch (err2) {
+        console.warn('Gemini parser attempt unavailable:', err2);
+      }
     }
+    return null;
+  };
+
+  // Execution flow respecting user's preferred provider or cascade order
+  if (preferred === 'openai' && openAiKey) {
+    const res = await tryOpenAI(openAiKey);
+    if (res) return res;
+  } else if (preferred === 'groq' && groqKey) {
+    const res = await tryGroq(groqKey);
+    if (res) return res;
+  } else if (preferred === 'openrouter' && openRouterKey) {
+    const res = await tryOpenRouter(openRouterKey);
+    if (res) return res;
   }
 
-  // High-Precision Dynamic Heuristic Section Parser
+  // Automatic cascade through remaining available keys
+  if (openRouterKey) {
+    const res = await tryOpenRouter(openRouterKey);
+    if (res) return res;
+  }
+  if (openAiKey) {
+    const res = await tryOpenAI(openAiKey);
+    if (res) return res;
+  }
+  if (groqKey) {
+    const res = await tryGroq(groqKey);
+    if (res) return res;
+  }
+
+  // Fallback to Gemini
+  const geminiRes = await tryGemini();
+  if (geminiRes) return geminiRes;
+
+  // Final Safety Fallback: High-Precision Dynamic Heuristic Section Parser
+  console.log('AI models unavailable, using precision regex heuristic parser...');
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  const phoneMatch = text.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\+91[\s-]?\d{10}/);
+  const phoneMatch = text.match(/(?:\+?\d{1,4}[-.\s]*)?(?:\(?\d{2,5}\)?[-.\s]*)?\d{3,5}[-.\s]*\d{3,5}/);
   const linkedinMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/);
+  const githubMatch = text.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/[a-zA-Z0-9_-]+/);
 
   // Extract name & headline
   let extractedName = '';
-  for (let i = 0; i < Math.min(5, lines.length); i++) {
+  for (let i = 0; i < Math.min(8, lines.length); i++) {
     const l = lines[i];
-    if (l.length >= 3 && l.length <= 40 && !l.includes('@') && !l.includes('http') && !/resume|curriculum|vitae|page|phone/i.test(l)) {
-      extractedName = l;
+    if (
+      l.length >= 3 &&
+      l.length <= 45 &&
+      !l.includes('@') &&
+      !l.includes('http') &&
+      !/^(?:resume|curriculum\s+vitae|cv|page\s*\d+|contact|profile|personal\s+details)/i.test(l) &&
+      !/^\+?\d{2,}/.test(l)
+    ) {
+      extractedName = l.replace(/^name\s*[:\-]\s*/i, '').trim();
       break;
     }
   }
   if (!extractedName) {
-    extractedName = lines[0] && lines[0].length < 40 ? lines[0] : 'Candidate Name';
+    extractedName = fileName ? fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') : 'Candidate';
   }
 
   let extractedHeadline = '';
-  for (let i = 0; i < Math.min(6, lines.length); i++) {
+  for (let i = 0; i < Math.min(8, lines.length); i++) {
     const l = lines[i];
-    if (l !== extractedName && l.length >= 5 && l.length <= 75 && !l.includes('@') && !l.includes('http') && !/resume|page|email/i.test(l)) {
+    if (
+      l !== extractedName &&
+      l.length >= 4 &&
+      l.length <= 80 &&
+      !l.includes('@') &&
+      !l.includes('http') &&
+      !/^(?:resume|page\s*\d+|email|phone|address|summary)/i.test(l)
+    ) {
       extractedHeadline = l;
       break;
     }
@@ -383,14 +554,14 @@ Return strictly valid JSON adhering to this schema:
     extractedHeadline = 'Experienced Professional';
   }
 
-  const locationMatch = text.match(/([A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+(?:\s*\d{5,6})?|[A-Z][a-zA-Z\s]+,\s*India|[A-Z][a-zA-Z\s]+,\s*USA)/);
-  const location = locationMatch ? locationMatch[0] : 'Location Available upon Request';
+  const locationMatch = text.match(/([A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+(?:\s*\d{5,6})?|[A-Z][a-zA-Z\s]+,\s*(?:India|USA|UK|Canada|Germany|Australia|Singapore))/);
+  const location = locationMatch ? locationMatch[0] : '';
 
   // Extract work experiences from document text sections
   const extractedExperiences: any[] = [];
   const expKeywords = /^(?:work\s+experience|professional\s+experience|experience\s+and\s+achievements|relevant\s+experience|employment\s+history|employment\s+record|career\s+history|work\s+history|experience)\b[:\s]*/i;
-  const eduKeywords = /^(?:education|academic\s+background|qualifications|academic\s+history|degrees)\b[:\s]*/i;
-  const skillsKeywords = /^(?:skills|core\s+competencies|technical\s+skills|competencies|tools\s*&\s*technologies)\b[:\s]*/i;
+  const eduKeywords = /^(?:education|academic\s+background|qualifications|academic\s+history|degrees|academic\s+credentials)\b[:\s]*/i;
+  const skillsKeywords = /^(?:skills|core\s+competencies|technical\s+skills|competencies|tools\s*&\s*technologies|technical\s+proficiencies)\b[:\s]*/i;
   const projectKeywords = /^(?:projects|key\s+projects|selected\s+projects|academic\s+projects)\b[:\s]*/i;
 
   let inExperienceSection = false;
@@ -412,18 +583,16 @@ Return strictly valid JSON adhering to this schema:
     }
 
     if (inExperienceSection) {
-      // Date patterns like "May 2018 – Present", "2018 - 2022", "06/2019 - Present", "Since 2020", "2014 to 2018"
       const dateMatch = line.match(/\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\d{1,2}\/\d{4}|\d{4})\s*[-–—to]+\s*(Present|Current|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\d{1,2}\/\d{4}|\d{4})/i)
         || line.match(/\b(19\d\d|20\d\d)\s*[-–—]\s*(Present|\b(19\d\d|20\d\d)\b)/i);
-      const isBullet = /^[•\-*–—\d+\.]\s*/.test(line);
+      const isBullet = /^[•\-*–—▪▫➢▶✓○\d+\.]\s*/.test(line);
 
       if (dateMatch && !isBullet) {
         if (currentExp) extractedExperiences.push(currentExp);
 
-        // Deduce company and role from current and previous lines
         let role = line.replace(dateMatch[0], '').replace(/[|•–—\-,]/g, ' ').trim();
         let company = 'Organization';
-        let expLoc = location;
+        const expLoc = location;
 
         const prevLine = lines[i - 1] || '';
         const prevPrevLine = lines[i - 2] || '';
@@ -435,7 +604,6 @@ Return strictly valid JSON adhering to this schema:
           company = prevLine;
         }
 
-        // Check if role contains company separator like "Analyst at ABC Corp" or "Analyst - ABC Corp"
         if (role.includes(' at ')) {
           const parts = role.split(' at ');
           role = parts[0].trim();
@@ -460,18 +628,18 @@ Return strictly valid JSON adhering to this schema:
           bullets: [],
         };
       } else if (isBullet && currentExp) {
-        const cleanBullet = line.replace(/^[•\-*–—\d+\.]\s*/, '').trim();
+        const cleanBullet = line.replace(/^[•\-*–—▪▫➢▶✓○\d+\.]\s*/, '').trim();
         if (cleanBullet.length > 5) {
           currentExp.bullets.push(cleanBullet);
         }
-      } else if (currentExp && line.length > 20 && !dateMatch) {
-        currentExp.bullets.push(line);
+      } else if (currentExp && line.length > 15 && !dateMatch) {
+        currentExp.bullets.push(line.replace(/^[•\-*–—▪▫➢▶✓○\d+\.]\s*/, '').trim());
       }
     }
   }
   if (currentExp) extractedExperiences.push(currentExp);
 
-  // If no structured experience header was matched, extract job blocks by scanning for date ranges
+  // If no experience header was matched, extract job blocks by scanning for date ranges
   if (extractedExperiences.length === 0) {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -483,7 +651,7 @@ Return strictly valid JSON adhering to this schema:
         const bullets: string[] = [];
         for (let j = i + 1; j < Math.min(i + 8, lines.length); j++) {
           if (lines[j].match(/\b(19\d\d|20\d\d)\s*[-–—to]+/)) break;
-          if (lines[j].length > 15) bullets.push(lines[j].replace(/^[•\-*–—]\s*/, '').trim());
+          if (lines[j].length > 12) bullets.push(lines[j].replace(/^[•\-*–—▪▫➢▶✓○\d+\.]\s*/, '').trim());
         }
 
         extractedExperiences.push({
@@ -495,13 +663,13 @@ Return strictly valid JSON adhering to this schema:
           endDate: /present|current/i.test(dateMatch[0]) ? 'Present' : dateMatch[2],
           current: /present|current/i.test(dateMatch[0]),
           description: '',
-          bullets: bullets.length > 0 ? bullets : ['Led execution of core departmental initiatives with measurable outcomes.'],
+          bullets: bullets.length > 0 ? bullets : ['Executed core initiatives with measurable outcomes.'],
         });
       }
     }
   }
 
-  // Extract real education from document
+  // Extract education from document
   const extractedEducation: any[] = [];
   let inEduSection = false;
   for (let i = 0; i < lines.length; i++) {
@@ -515,7 +683,7 @@ Return strictly valid JSON adhering to this schema:
       continue;
     }
     if (inEduSection) {
-      if (/university|college|institute|school|bachelor|master|b\.sc|m\.sc|b\.tech|m\.tech|phd|diploma/i.test(line)) {
+      if (/university|college|institute|school|bachelor|master|b\.sc|m\.sc|b\.tech|m\.tech|bba|mba|phd|diploma/i.test(line)) {
         extractedEducation.push({
           id: `edu-${extractedEducation.length + 1}`,
           school: line.length < 70 ? line : 'University Degree',
@@ -524,7 +692,7 @@ Return strictly valid JSON adhering to this schema:
           location: location,
           startDate: '2016',
           endDate: '2020',
-          gpa: 'Honors',
+          gpa: '',
           highlights: []
         });
       }
@@ -576,11 +744,11 @@ Return strictly valid JSON adhering to this schema:
     personalInfo: {
       fullName: extractedName,
       headline: extractedHeadline,
-      email: emailMatch ? emailMatch[0] : 'candidate@example.com',
-      phone: phoneMatch ? phoneMatch[0] : '+91 84202 69510',
+      email: emailMatch ? emailMatch[0] : '',
+      phone: phoneMatch ? phoneMatch[0].trim() : '',
       location: location,
       linkedin: linkedinMatch ? linkedinMatch[0] : '',
-      github: '',
+      github: githubMatch ? githubMatch[0] : '',
       portfolio: '',
     },
     summary: text.slice(0, 450).replace(/\s+/g, ' ') || 'Experienced professional with demonstrated background in project execution, empirical analysis, and domain leadership.',
@@ -590,11 +758,11 @@ Return strictly valid JSON adhering to this schema:
         id: 'edu-1',
         school: 'University Degree',
         degree: 'Bachelor / Master Degree',
-        fieldOfStudy: 'Quantitative Discipline',
+        fieldOfStudy: 'Academic Discipline',
         location: location,
         startDate: '2016',
         endDate: '2020',
-        gpa: 'Honors',
+        gpa: '',
         highlights: []
       }
     ],
@@ -609,12 +777,28 @@ Return strictly valid JSON adhering to this schema:
   };
 }
 
-// Endpoint: Upload and Parse Personal CV File (PDF, DOCX, DOC, TXT) with optional OpenRouter API Key
+// Endpoint: Upload and Parse Personal CV File (PDF, DOCX, DOC, TXT) with OpenRouter / Groq / OpenAI support
 app.post('/api/upload-cv-file', async (req: Request, res: Response) => {
   try {
-    const { fileBase64, fileName, mimeType, openRouterApiKey } = req.body;
-    const headerKey = (req.headers['x-openrouter-key'] as string) || '';
-    const activeOpenRouterKey = (openRouterApiKey || headerKey || process.env.OPENROUTER_API_KEY || '').trim();
+    const {
+      fileBase64,
+      fileName,
+      mimeType,
+      openRouterApiKey,
+      groqApiKey,
+      openAiApiKey,
+      preferredProvider,
+    } = req.body;
+
+    const headerOpenRouter = (req.headers['x-openrouter-key'] as string) || '';
+    const headerGroq = (req.headers['x-groq-key'] as string) || '';
+    const headerOpenAi = (req.headers['x-openai-key'] as string) || '';
+    const headerProvider = (req.headers['x-provider'] as string) || '';
+
+    const effectiveOpenRouter = (openRouterApiKey || headerOpenRouter || process.env.OPENROUTER_API_KEY || '').trim();
+    const effectiveGroq = (groqApiKey || headerGroq || process.env.GROQ_API_KEY || '').trim();
+    const effectiveOpenAi = (openAiApiKey || headerOpenAi || process.env.OPENAI_API_KEY || '').trim();
+    const effectiveProvider = (preferredProvider || headerProvider || '').trim();
 
     if (!fileBase64) {
       return res.status(400).json({ error: 'No file content received' });
@@ -629,12 +813,21 @@ app.post('/api/upload-cv-file', async (req: Request, res: Response) => {
       });
     }
 
-    const parsedResume = await parseResumeTextIntoStructure(extractedText, fileName, activeOpenRouterKey);
+    const parsedResume = await parseResumeTextIntoStructure(extractedText, fileName, {
+      openRouterApiKey: effectiveOpenRouter,
+      groqApiKey: effectiveGroq,
+      openAiApiKey: effectiveOpenAi,
+      preferredProvider: effectiveProvider,
+    });
+
+    const usedProvider = effectiveOpenAi ? 'openai' : effectiveGroq ? 'groq' : effectiveOpenRouter ? 'openrouter' : 'gemini';
+
     return res.json({
       success: true,
       text: extractedText,
       resume: parsedResume,
-      usedOpenRouter: Boolean(activeOpenRouterKey),
+      usedProvider,
+      hasCustomKey: Boolean(effectiveOpenRouter || effectiveGroq || effectiveOpenAi),
     });
   } catch (error: any) {
     console.error('Error in /api/upload-cv-file:', error);
@@ -1323,6 +1516,137 @@ app.post('/api/config/openrouter-key', (req: Request, res: Response) => {
   }
 });
 
+// Endpoint: Securely configure Groq API Key in backend
+app.post('/api/config/groq-key', (req: Request, res: Response) => {
+  try {
+    const { apiKey } = req.body;
+    if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
+      return res.status(400).json({ error: 'Valid Groq API Key is required' });
+    }
+
+    process.env.GROQ_API_KEY = apiKey.trim();
+    console.log('Groq API Key saved in backend environment.');
+
+    return res.json({
+      success: true,
+      message: 'Groq API Key successfully saved in backend!',
+      hasGroqKey: true,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to save Groq key' });
+  }
+});
+
+// Endpoint: Securely configure OpenAI API Key in backend
+app.post('/api/config/openai-key', (req: Request, res: Response) => {
+  try {
+    const { apiKey } = req.body;
+    if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
+      return res.status(400).json({ error: 'Valid OpenAI API Key is required' });
+    }
+
+    process.env.OPENAI_API_KEY = apiKey.trim();
+    console.log('OpenAI API Key saved in backend environment.');
+
+    return res.json({
+      success: true,
+      message: 'OpenAI API Key successfully saved in backend!',
+      hasOpenAiKey: true,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to save OpenAI key' });
+  }
+});
+
+// Endpoint: Configure multiple AI keys in one batch
+app.post('/api/config/ai-keys', (req: Request, res: Response) => {
+  try {
+    const { openRouterKey, groqKey, openAiKey } = req.body;
+    if (typeof openRouterKey === 'string' && openRouterKey.trim()) {
+      process.env.OPENROUTER_API_KEY = openRouterKey.trim();
+    }
+    if (typeof groqKey === 'string' && groqKey.trim()) {
+      process.env.GROQ_API_KEY = groqKey.trim();
+    }
+    if (typeof openAiKey === 'string' && openAiKey.trim()) {
+      process.env.OPENAI_API_KEY = openAiKey.trim();
+    }
+
+    return res.json({
+      success: true,
+      message: 'AI Provider keys updated successfully in backend environment!',
+      hasOpenRouterKey: Boolean(process.env.OPENROUTER_API_KEY),
+      hasGroqKey: Boolean(process.env.GROQ_API_KEY),
+      hasOpenAiKey: Boolean(process.env.OPENAI_API_KEY),
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Failed to update AI keys' });
+  }
+});
+
+// Endpoint: Live ping test for an API key
+app.post('/api/config/test-key', async (req: Request, res: Response) => {
+  try {
+    const { provider, apiKey } = req.body;
+    if (!provider || !apiKey) {
+      return res.status(400).json({ success: false, error: 'Provider and API Key are required' });
+    }
+
+    const prov = provider.toLowerCase();
+
+    if (prov === 'openrouter') {
+      const resp = await fetch('https://openrouter.ai/api/v1/auth/key', {
+        headers: { Authorization: `Bearer ${apiKey.trim()}` },
+      });
+      if (resp.ok) {
+        const info = await resp.json();
+        return res.json({
+          success: true,
+          message: 'OpenRouter API Key is valid and active!',
+          details: info?.data?.label || 'Account verified',
+        });
+      } else {
+        const errText = await resp.text();
+        return res.status(400).json({ success: false, error: `OpenRouter returned: ${errText.slice(0, 150)}` });
+      }
+    }
+
+    if (prov === 'groq') {
+      const resp = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { Authorization: `Bearer ${apiKey.trim()}` },
+      });
+      if (resp.ok) {
+        return res.json({
+          success: true,
+          message: 'Groq API Key is valid and ready for ultra-fast LLaMA 3.3 parsing!',
+        });
+      } else {
+        const errText = await resp.text();
+        return res.status(400).json({ success: false, error: `Groq verification failed: ${errText.slice(0, 150)}` });
+      }
+    }
+
+    if (prov === 'openai') {
+      const resp = await fetch('https://api.openai.com/v1/models', {
+        headers: { Authorization: `Bearer ${apiKey.trim()}` },
+      });
+      if (resp.ok) {
+        return res.json({
+          success: true,
+          message: 'OpenAI API Key is valid and active for GPT-4o-mini parsing!',
+        });
+      } else {
+        const errText = await resp.text();
+        return res.status(400).json({ success: false, error: `OpenAI verification failed: ${errText.slice(0, 150)}` });
+      }
+    }
+
+    return res.status(400).json({ success: false, error: 'Unknown provider requested' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message || 'Key test failed' });
+  }
+});
+
 // Endpoint: Query API and payment configuration status
 app.get('/api/config/status', (_req: Request, res: Response) => {
   const rzpKey = process.env.RAZORPAY_KEY_ID || '';
@@ -1331,6 +1655,8 @@ app.get('/api/config/status', (_req: Request, res: Response) => {
     success: true,
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
     hasOpenRouterKey: Boolean(process.env.OPENROUTER_API_KEY),
+    hasGroqKey: Boolean(process.env.GROQ_API_KEY),
+    hasOpenAiKey: Boolean(process.env.OPENAI_API_KEY),
     hasRazorpayKey: Boolean(rzpKey && !rzpKey.includes('demokey')),
     isLiveRazorpay: isLiveRzp,
     razorpayKeyId: rzpKey || 'rzp_test_demokey1234',
